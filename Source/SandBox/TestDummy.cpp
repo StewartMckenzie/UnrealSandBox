@@ -22,11 +22,11 @@ void ATestDummy::Tick(float DeltaTime)
 }
 
 // Called to bind functionality to input
-void ATestDummy::SetupPlayerInputComponent(UInputComponent *PlayerInputComponent)
+void ATestDummy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	PlayerInputComponent->BindAction(TEXT("Jump"),EInputEvent::IE_Pressed ,this,  &ACharacter::Jump);
+	PlayerInputComponent->BindAction(TEXT("Jump"), EInputEvent::IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAxis(TEXT("MoveForward"), this, &ATestDummy::MoveForward);
 	PlayerInputComponent->BindAxis(TEXT("MoveRight"), this, &ATestDummy::MoveRight);
 	PlayerInputComponent->BindAxis(TEXT("LookUp"), this, &APawn::AddControllerPitchInput);
@@ -40,6 +40,5 @@ void ATestDummy::MoveForward(float AxisValue)
 
 void ATestDummy::MoveRight(float AxisValue)
 {
-
 	AddMovementInput(GetActorRightVector() * AxisValue);
 }
