@@ -1,0 +1,12 @@
+.vscode
+DerivedDataCache
+Intermediate
+Saved
+*.VC.db
+*.opensdf
+*.opendb
+*.sdf
+*.sln
+*.suo
+.vs/
+Paid-Assests/
