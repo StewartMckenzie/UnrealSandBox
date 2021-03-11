@@ -7,7 +7,6 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
-
 #include "Engine.h"
 
 // Sets default values
@@ -43,6 +42,7 @@ ATestDummy::ATestDummy()
 void ATestDummy::BeginPlay()
 {
 	Super::BeginPlay();
+	GetWorld()->SpawnActor<AMeleeWeapon>(MeleeWeaponClass);
 }
 
 // Called every frame
@@ -55,7 +55,6 @@ void ATestDummy::Tick(float DeltaTime)
 void ATestDummy::SetupPlayerInputComponent(UInputComponent *PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
 	PlayerInputComponent->BindAction(TEXT("Jump"), EInputEvent::IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAxis(TEXT("MoveForward"), this, &ATestDummy::MoveForward);
 	PlayerInputComponent->BindAxis(TEXT("MoveRight"), this, &ATestDummy::MoveRight);
@@ -63,20 +62,18 @@ void ATestDummy::SetupPlayerInputComponent(UInputComponent *PlayerInputComponent
 	PlayerInputComponent->BindAxis(TEXT("LookUpRate"), this, &ATestDummy::LookUpRate);
 	PlayerInputComponent->BindAxis(TEXT("LookRightRate"), this, &ATestDummy::LookRightRate);
 	PlayerInputComponent->BindAxis(TEXT("LookRight"), this, &APawn::AddControllerYawInput);
-
-	//attack Functionality
 	PlayerInputComponent->BindAction(TEXT("Attack"), EInputEvent::IE_Pressed, this, &ATestDummy::AttackStart);
 	PlayerInputComponent->BindAction(TEXT("Attack"), EInputEvent::IE_Released, this, &ATestDummy::AttackEnd);
 }
 
 void ATestDummy::AttackStart()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Attack started"));
 	//Generate a random attack number between 1-4
-	int MontageSectionIndex = FMath::RandRange(1, 5);
+	int MontageSectionIndex = FMath::RandRange(1, 4);
 
 	//Create a string to reference the start an attack animation sections
 	FString MontageSection = "Start_" + FString::FromInt(MontageSectionIndex);
+
 	//Play that animations
 	PlayAnimMontage(MeleeSwordAttackMontage, 1.f, FName(*MontageSection));
 }

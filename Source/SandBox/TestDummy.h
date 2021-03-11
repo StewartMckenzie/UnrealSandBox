@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "MeleeWeapon.h"
 #include "TestDummy.generated.h"
 
 UCLASS(config = Game)
@@ -15,7 +16,7 @@ public:
 	// Sets default values for this character's properties
 	ATestDummy();
 
-	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	class UAnimMontage *MeleeSwordAttackMontage;
 
 protected:
@@ -42,4 +43,8 @@ private:
 	float RotationRate = 10;
 	UPROPERTY(EditAnywhere)
 	float JumpForceZ = 600;
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<AMeleeWeapon> MeleeWeaponClass;
+	UPROPERTY()
+	AMeleeWeapon *MeleeWeapon;
 };
