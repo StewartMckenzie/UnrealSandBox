@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Components/BoxComponent.h"
 #include "MeleeWeapon.generated.h"
 
 UCLASS()
@@ -12,8 +13,8 @@ class SANDBOX_API AMeleeWeapon : public AActor
 {
 	GENERATED_BODY()
 
-public:
-	// Sets default values for this actor's properties
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = collision, meta = (AllowPrivateAccess = "true"))
+	class UBoxComponent *BladeCollisionBox;
 	AMeleeWeapon();
 
 protected:

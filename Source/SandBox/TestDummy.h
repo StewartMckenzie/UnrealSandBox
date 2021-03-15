@@ -7,15 +7,15 @@
 #include "MeleeWeapon.h"
 #include "TestDummy.generated.h"
 
-UCLASS(config = Game)
-class SANDBOX_API ATestDummy : public ACharacter
+
+UCLASS(config = Game)class SANDBOX_API ATestDummy : public ACharacter
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this character's properties
 	ATestDummy();
-
+	//Make the default animation montage editable in our blueprint class
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	class UAnimMontage *MeleeSwordAttackMontage;
 
@@ -35,16 +35,22 @@ private:
 	void AttackStart();
 	//initiated attack ends
 	void AttackEnd();
+	//x and y movement
 	void MoveForward(float AxisValue);
 	void MoveRight(float AxisValue);
+	//x and y camera rotations for controller
 	void LookUpRate(float AxisValue);
 	void LookRightRate(float AxisValue);
+	//How fast our camera rotates
 	UPROPERTY(EditAnywhere)
 	float RotationRate = 10;
+	//How high we jump
 	UPROPERTY(EditAnywhere)
 	float JumpForceZ = 600;
+	//The class of our weapon
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<AMeleeWeapon> MeleeWeaponClass;
+	//A pointer to our actual weapon
 	UPROPERTY()
 	AMeleeWeapon *MeleeWeapon;
 };

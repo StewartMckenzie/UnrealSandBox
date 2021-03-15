@@ -30,6 +30,7 @@ ATestDummy::ATestDummy()
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	// Load our attack montage
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> MeleeSwordAttackMontageObject(TEXT("AnimMontage'/Game/Blueprints/TestDummy/Animations/MeleeSwordAttackMontage.MeleeSwordAttackMontage'"));
 
 	if (MeleeSwordAttackMontageObject.Succeeded())
@@ -42,7 +43,12 @@ ATestDummy::ATestDummy()
 void ATestDummy::BeginPlay()
 {
 	Super::BeginPlay();
-	GetWorld()->SpawnActor<AMeleeWeapon>(MeleeWeaponClass);
+	//spawn the weapon in world
+	MeleeWeapon=GetWorld()->SpawnActor<AMeleeWeapon>(MeleeWeaponClass);
+	//attach it in our right hand
+	MeleeWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("WeaponSocketR"));
+	//claim ownership
+	MeleeWeapon->SetOwner(this);
 }
 
 // Called every frame
