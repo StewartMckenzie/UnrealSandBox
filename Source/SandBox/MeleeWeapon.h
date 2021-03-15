@@ -13,9 +13,13 @@ class SANDBOX_API AMeleeWeapon : public AActor
 {
 	GENERATED_BODY()
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = collision, meta = (AllowPrivateAccess = "true"))
-	class UBoxComponent *BladeCollisionBox;
+		UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = collision, meta = (AllowPrivateAccess = "true"))
+		class UBoxComponent* BladeCollisionBox;
 	AMeleeWeapon();
+
+public:
+	//A function to control our colliders
+	void SetCollider(bool Status);
 
 protected:
 	// Called when the game starts or when spawned
@@ -27,8 +31,8 @@ public:
 
 private:
 	UPROPERTY(VisibleAnywhere)
-	USceneComponent *Root;
+		USceneComponent* Root;
 
 	UPROPERTY(VisibleAnywhere)
-	USkeletalMeshComponent *Mesh;
+		USkeletalMeshComponent* Mesh;
 };

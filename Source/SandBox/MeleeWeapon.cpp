@@ -25,11 +25,22 @@ void AMeleeWeapon::BeginPlay()
 {
 	Super::BeginPlay();
 	//Attach box collider to our socket
-	BladeCollisionBox->AttachToComponent(Mesh, FAttachmentTransformRules::KeepRelativeTransform, TEXT("BladeSocket"));
+	BladeCollisionBox->AttachToComponent(Mesh, FAttachmentTransformRules::KeepWorldTransform, TEXT("BladeSocket"));
 }
 
 // Called every frame
 void AMeleeWeapon::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+}
+
+void AMeleeWeapon::SetCollider(bool Status)
+{
+	//If true activae else deactivate colliders
+	if (Status) {
+		BladeCollisionBox->SetCollisionProfileName("Weapon");
+	}
+	else {
+		BladeCollisionBox->SetCollisionProfileName("NoCollision");
+	}
 }

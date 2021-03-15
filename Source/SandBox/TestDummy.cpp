@@ -44,7 +44,8 @@ void ATestDummy::BeginPlay()
 {
 	Super::BeginPlay();
 	//spawn the weapon in world
-	MeleeWeapon=GetWorld()->SpawnActor<AMeleeWeapon>(MeleeWeaponClass);
+	MeleeWeapon = GetWorld()->SpawnActor<AMeleeWeapon>(MeleeWeaponClass);
+
 	//attach it in our right hand
 	MeleeWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("WeaponSocketR"));
 	//claim ownership
@@ -58,7 +59,7 @@ void ATestDummy::Tick(float DeltaTime)
 }
 
 // Called to bind functionality to input
-void ATestDummy::SetupPlayerInputComponent(UInputComponent *PlayerInputComponent)
+void ATestDummy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 	PlayerInputComponent->BindAction(TEXT("Jump"), EInputEvent::IE_Pressed, this, &ACharacter::Jump);
@@ -68,11 +69,11 @@ void ATestDummy::SetupPlayerInputComponent(UInputComponent *PlayerInputComponent
 	PlayerInputComponent->BindAxis(TEXT("LookUpRate"), this, &ATestDummy::LookUpRate);
 	PlayerInputComponent->BindAxis(TEXT("LookRightRate"), this, &ATestDummy::LookRightRate);
 	PlayerInputComponent->BindAxis(TEXT("LookRight"), this, &APawn::AddControllerYawInput);
-	PlayerInputComponent->BindAction(TEXT("Attack"), EInputEvent::IE_Pressed, this, &ATestDummy::AttackStart);
+	PlayerInputComponent->BindAction(TEXT("Attack"), EInputEvent::IE_Pressed, this, &ATestDummy::AttackInput);
 	PlayerInputComponent->BindAction(TEXT("Attack"), EInputEvent::IE_Released, this, &ATestDummy::AttackEnd);
 }
 
-void ATestDummy::AttackStart()
+void ATestDummy::AttackInput()
 {
 	//Generate a random attack number between 1-4
 	int MontageSectionIndex = FMath::RandRange(1, 4);
@@ -84,9 +85,22 @@ void ATestDummy::AttackStart()
 	PlayAnimMontage(MeleeSwordAttackMontage, 1.f, FName(*MontageSection));
 }
 
+void ATestDummy::AttackStart()
+{
+	//Log to screen
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Attack Started"));
+	//Activate collider
+	//Need to refactor this, causes UE to crash when opening the anim montage
+	MeleeWeapon->SetCollider(true);
+}
+
 void ATestDummy::AttackEnd()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Attack FInished"));
+	//Log to screen
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Attack ended"));
+	//Dectivate collider
+	//Need to refactor this, causes UE to crash when opening the anim montage
+	MeleeWeapon->SetCollider(false);
 }
 
 void ATestDummy::MoveForward(float AxisValue)
