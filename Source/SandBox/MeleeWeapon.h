@@ -20,6 +20,15 @@ class SANDBOX_API AMeleeWeapon : public AActor
 public:
 	//A function to control our colliders
 	void SetCollider(bool Status);
+	//Triggered when collision hit event fires between weapon and enemy Must be a UFUNCTION
+	UFUNCTION()
+		void OnAttackHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	////Triggered when collider overlaps another component
+	//UFUNCTION()
+	//	void OnAttackOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	////Triggered when the collider stops overlapping another component
+	//UFUNCTION()
+	//	void OnAttackOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 protected:
 	// Called when the game starts or when spawned

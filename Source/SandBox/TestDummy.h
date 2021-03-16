@@ -57,4 +57,5 @@ private:
 	//A pointer to our actual weapon
 	UPROPERTY()
 		AMeleeWeapon* MeleeWeapon;
+	UBoxComponent* WeaponCollisionBox;
 };

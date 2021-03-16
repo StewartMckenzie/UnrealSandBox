@@ -46,10 +46,13 @@ void ATestDummy::BeginPlay()
 	//spawn the weapon in world
 	MeleeWeapon = GetWorld()->SpawnActor<AMeleeWeapon>(MeleeWeaponClass);
 
-	//attach it in our right hand
-	MeleeWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("WeaponSocketR"));
-	//claim ownership
-	MeleeWeapon->SetOwner(this);
+	if (MeleeWeapon) {	//attach it in our right hand
+		MeleeWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("WeaponSocketR"));
+		//claim ownership
+		MeleeWeapon->SetOwner(this);
+		//Grab your weapons box collision
+		WeaponCollisionBox = MeleeWeapon->FindComponentByClass<UBoxComponent>();
+	}
 }
 
 // Called every frame
@@ -91,16 +94,23 @@ void ATestDummy::AttackStart()
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Attack Started"));
 	//Activate collider
 	//Need to refactor this, causes UE to crash when opening the anim montage
-	MeleeWeapon->SetCollider(true);
+	if (WeaponCollisionBox != nullptr) {
+		WeaponCollisionBox->SetCollisionProfileName("Weapon");
+		WeaponCollisionBox->SetNotifyRigidBodyCollision(true);
+		/*	WeaponCollisionBox->SetGenerateOverlapEvents(true);*/
+	}
 }
 
 void ATestDummy::AttackEnd()
 {
 	//Log to screen
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Attack ended"));
-	//Dectivate collider
-	//Need to refactor this, causes UE to crash when opening the anim montage
-	MeleeWeapon->SetCollider(false);
+	//Deactivate collider
+	if (WeaponCollisionBox != nullptr) {
+		WeaponCollisionBox->SetCollisionProfileName("NoCollision");
+		WeaponCollisionBox->SetNotifyRigidBodyCollision(false);
+		/*	WeaponCollisionBox->SetGenerateOverlapEvents(false);*/
+	}
 }
 
 void ATestDummy::MoveForward(float AxisValue)

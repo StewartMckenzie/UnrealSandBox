@@ -12,7 +12,9 @@ void UAttackStartNotifyState::NotifyBegin(USkeletalMeshComponent* MeshComp, UAni
 		//Grab our player
 		ATestDummy* Player = Cast<ATestDummy>(MeshComp->GetOwner());
 		//Initiate attack when animation starts
-		Player->AttackStart();
+		if (Player != NULL) {
+			Player->AttackStart();
+		}
 	}
 }
 
@@ -23,7 +25,8 @@ void UAttackStartNotifyState::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimS
 	{
 		//Grab our player
 		ATestDummy* Player = Cast<ATestDummy>(MeshComp->GetOwner());
-
-		Player->AttackEnd();
+		if (Player != NULL) {
+			Player->AttackEnd();
+		}
 	}
 }

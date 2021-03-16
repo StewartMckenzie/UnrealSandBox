@@ -18,6 +18,7 @@ AMeleeWeapon::AMeleeWeapon()
 	BladeCollisionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("BladeCollisionBox"));
 	BladeCollisionBox->SetCollisionProfileName("NoCollision");
 	BladeCollisionBox->SetHiddenInGame(false);
+	BladeCollisionBox->SetNotifyRigidBodyCollision(false);
 }
 
 // Called when the game starts or when spawned
@@ -26,6 +27,10 @@ void AMeleeWeapon::BeginPlay()
 	Super::BeginPlay();
 	//Attach box collider to our socket
 	BladeCollisionBox->AttachToComponent(Mesh, FAttachmentTransformRules::KeepWorldTransform, TEXT("BladeSocket"));
+	//When the weapon hits something call OnAttackHit on MeleeWeapon
+	BladeCollisionBox->OnComponentHit.AddDynamic(this, &AMeleeWeapon::OnAttackHit);
+	//BladeCollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AMeleeWeapon::OnAttackOverlapBegin);
+	//BladeCollisionBox->OnComponentEndOverlap.AddDynamic(this, &AMeleeWeapon::OnAttackOverlapEnd);
 }
 
 // Called every frame
@@ -36,7 +41,7 @@ void AMeleeWeapon::Tick(float DeltaTime)
 
 void AMeleeWeapon::SetCollider(bool Status)
 {
-	//If true activae else deactivate colliders
+	//If true activate else deactivate colliders
 	if (Status) {
 		BladeCollisionBox->SetCollisionProfileName("Weapon");
 	}
@@ -44,3 +49,18 @@ void AMeleeWeapon::SetCollider(bool Status)
 		BladeCollisionBox->SetCollisionProfileName("NoCollision");
 	}
 }
+
+void AMeleeWeapon::OnAttackHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Magenta, Hit.GetActor()->GetName());
+}
+
+//void AMeleeWeapon::OnAttackOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+//{
+//	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Magenta, OtherActor->GetName());
+//}
+//
+//void AMeleeWeapon::OnAttackOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+//{
+//	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Magenta, OtherActor->GetName());
+//}
