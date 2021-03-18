@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/BoxComponent.h"
+#include "Components/AudioComponent.h"
+#include "Sound/SoundCue.h"
 #include "MeleeWeapon.generated.h"
 
 UCLASS()
@@ -23,6 +25,12 @@ public:
 	//Triggered when collision hit event fires between weapon and enemy Must be a UFUNCTION
 	UFUNCTION()
 		void OnAttackHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	//Sound cues for our sword swinging and hiting
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Audio, meta = (AllowPrivateAccess = "true"))
+		class USoundCue* SwordSwingSoundCue;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Audio, meta = (AllowPrivateAccess = "true"))
+		class USoundCue* SwordHitSoundCue;
+
 	////Triggered when collider overlaps another component
 	//UFUNCTION()
 	//	void OnAttackOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
@@ -37,6 +45,10 @@ protected:
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	// Components to be attached to our Weapon
+	UAudioComponent* SwordSwingAudioComponent;
+	UAudioComponent* SwordHitAudioComponent;
 
 private:
 	UPROPERTY(VisibleAnywhere)

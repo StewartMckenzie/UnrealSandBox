@@ -7,15 +7,14 @@
 #include "AttackStartNotifyState.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class SANDBOX_API UAttackStartNotifyState : public UAnimNotifyState
 {
 	GENERATED_BODY()
-	
-	public:
-	virtual void NotifyBegin(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation, float TotalDuration)override;
-	virtual void NotifyEnd(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation)override;
-	
+
+public:
+	virtual void NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration)override;
+	virtual void NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)override;
 };

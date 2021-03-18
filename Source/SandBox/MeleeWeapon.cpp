@@ -19,6 +19,22 @@ AMeleeWeapon::AMeleeWeapon()
 	BladeCollisionBox->SetCollisionProfileName("NoCollision");
 	BladeCollisionBox->SetHiddenInGame(false);
 	BladeCollisionBox->SetNotifyRigidBodyCollision(false);
+
+	//Find the Cues we made in editor
+	static ConstructorHelpers::FObjectFinder<USoundCue> SwordSlashSoundCueObject(TEXT("SoundCue'/Game/Blueprints/Weapons/Sounds/SwordSwingCue.SwordSwingCue'"));
+	static ConstructorHelpers::FObjectFinder<USoundCue> SwordHitSoundCueObject(TEXT("SoundCue'/Game/Blueprints/Weapons/Sounds/SwordHitCue.SwordHitCue'"));
+	//if found  save them as a variable
+	//Also create create an audio component to actual play them
+	if (SwordSlashSoundCueObject.Succeeded()) {
+		SwordSwingSoundCue = SwordSlashSoundCueObject.Object;
+		SwordSwingAudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("SwordSwingAudioComponent"));
+		SwordSwingAudioComponent->SetupAttachment((RootComponent));
+	}
+	if (SwordHitSoundCueObject.Succeeded()) {
+		SwordHitSoundCue = SwordHitSoundCueObject.Object;
+		SwordHitAudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("SwordHitAudioComponent"));
+		SwordHitAudioComponent->SetupAttachment((RootComponent));
+	}
 }
 
 // Called when the game starts or when spawned
@@ -29,6 +45,17 @@ void AMeleeWeapon::BeginPlay()
 	BladeCollisionBox->AttachToComponent(Mesh, FAttachmentTransformRules::KeepWorldTransform, TEXT("BladeSocket"));
 	//When the weapon hits something call OnAttackHit on MeleeWeapon
 	BladeCollisionBox->OnComponentHit.AddDynamic(this, &AMeleeWeapon::OnAttackHit);
+	//turn off auto play and set our cue as the sound for the component
+	//Done in begin play because there are issues with doing it in the constructor. Not to sure of the actual cause what they are gotta research
+	if (SwordSwingAudioComponent && !SwordSwingAudioComponent->IsPlaying()) {
+		SwordSwingAudioComponent->bAutoActivate = false;
+		SwordSwingAudioComponent->SetSound(SwordSwingSoundCue);
+	}
+	if (SwordHitAudioComponent && !SwordHitAudioComponent->IsPlaying()) {
+		SwordHitAudioComponent->bAutoActivate = false;
+		SwordHitAudioComponent->SetSound(SwordHitSoundCue);
+	}
+
 	//BladeCollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AMeleeWeapon::OnAttackOverlapBegin);
 	//BladeCollisionBox->OnComponentEndOverlap.AddDynamic(this, &AMeleeWeapon::OnAttackOverlapEnd);
 }
@@ -53,6 +80,7 @@ void AMeleeWeapon::SetCollider(bool Status)
 void AMeleeWeapon::OnAttackHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Magenta, Hit.GetActor()->GetName());
+	SwordHitAudioComponent->Play();
 }
 
 //void AMeleeWeapon::OnAttackOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)

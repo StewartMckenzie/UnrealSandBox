@@ -6,7 +6,6 @@
 
 void UAttackStartNotifyState::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Notify start"));
 	if (MeshComp != NULL && MeshComp->GetOwner() != NULL)
 	{
 		//Grab our player
@@ -20,7 +19,6 @@ void UAttackStartNotifyState::NotifyBegin(USkeletalMeshComponent* MeshComp, UAni
 
 void UAttackStartNotifyState::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Notify End"));
 	if (MeshComp != NULL && MeshComp->GetOwner() != NULL)
 	{
 		//Grab our player

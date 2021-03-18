@@ -84,14 +84,16 @@ void ATestDummy::AttackInput()
 	//Create a string to reference the start an attack animation sections
 	FString MontageSection = "Start_" + FString::FromInt(MontageSectionIndex);
 
-	//Play that animations
+	//Play that animations and sound
+
 	PlayAnimMontage(MeleeSwordAttackMontage, 1.f, FName(*MontageSection));
+	MeleeWeapon->SwordSwingAudioComponent->Play();
 }
 
 void ATestDummy::AttackStart()
 {
 	//Log to screen
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Attack Started"));
+
 	//Activate collider
 	//Need to refactor this, causes UE to crash when opening the anim montage
 	if (WeaponCollisionBox != nullptr) {
@@ -103,8 +105,6 @@ void ATestDummy::AttackStart()
 
 void ATestDummy::AttackEnd()
 {
-	//Log to screen
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Attack ended"));
 	//Deactivate collider
 	if (WeaponCollisionBox != nullptr) {
 		WeaponCollisionBox->SetCollisionProfileName("NoCollision");
