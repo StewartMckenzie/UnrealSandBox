@@ -66,17 +66,6 @@ void AMeleeWeapon::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void AMeleeWeapon::SetCollider(bool Status)
-{
-	//If true activate else deactivate colliders
-	if (Status) {
-		BladeCollisionBox->SetCollisionProfileName("Weapon");
-	}
-	else {
-		BladeCollisionBox->SetCollisionProfileName("NoCollision");
-	}
-}
-
 void AMeleeWeapon::OnAttackHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Magenta, Hit.GetActor()->GetName());

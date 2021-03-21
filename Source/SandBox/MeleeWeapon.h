@@ -20,8 +20,7 @@ class SANDBOX_API AMeleeWeapon : public AActor
 	AMeleeWeapon();
 
 public:
-	//A function to control our colliders
-	void SetCollider(bool Status);
+
 	//Triggered when collision hit event fires between weapon and enemy Must be a UFUNCTION
 	UFUNCTION()
 		void OnAttackHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);

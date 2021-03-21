@@ -17,15 +17,25 @@ public:
 	ATestDummy();
 	//Make the default animation montage editable in our blueprint class
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
-		class UAnimMontage* MeleeSwordAttackMontage;
+		class UAnimMontage* AttackPrimaryAMontage;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+		class UAnimMontage* AttackPrimaryBMontage;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+		class UAnimMontage* AttackPrimaryCMontage;
 
 	//Trigger attack animations based on user input
 	void AttackInput();
+	//Allows the current attack combo to continue
+	void SaveAttackCombo();
+	//Resets our combo after some time
+	void ResetAttackCombo();
 
 	// player initiates attack
 	void AttackStart();
 	//initiated attack ends
 	void AttackEnd();
+	//Play Attack sound
+	void AttackSound();
 
 protected:
 	// Called when the game starts or when spawned
@@ -57,5 +67,13 @@ private:
 	//A pointer to our actual weapon
 	UPROPERTY()
 		AMeleeWeapon* MeleeWeapon;
+	UPROPERTY(VisibleAnywhere)
+		bool IsAttacking = false;
+	UPROPERTY(VisibleAnywhere)
+		bool SaveAttack = false;
+	UPROPERTY(VisibleAnywhere)
+		int AttackCount = 0;
+	UPROPERTY(VisibleAnywhere)
+		int AttackSpeed = 1.7;
 	UBoxComponent* WeaponCollisionBox;
 };

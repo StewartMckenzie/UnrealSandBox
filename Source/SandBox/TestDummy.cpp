@@ -31,11 +31,21 @@ ATestDummy::ATestDummy()
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	// Load our attack montage
-	static ConstructorHelpers::FObjectFinder<UAnimMontage> MeleeSwordAttackMontageObject(TEXT("AnimMontage'/Game/Blueprints/TestDummy/Animations/MeleeSwordAttackMontage.MeleeSwordAttackMontage'"));
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> AttackPrimaryAMontageObject(TEXT("AnimMontage'/Game/Blueprints/TestDummy/Animations/Attack_PrimaryA_Montage.Attack_PrimaryA_Montage'"));
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> AttackPrimaryBMontageObject(TEXT("AnimMontage'/Game/Blueprints/TestDummy/Animations/Attack_PrimaryB_Montage.Attack_PrimaryB_Montage'"));
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> AttackPrimaryCMontageObject(TEXT("AnimMontage'/Game/Blueprints/TestDummy/Animations/Attack_PrimaryC_Montage.Attack_PrimaryC_Montage'"));
 
-	if (MeleeSwordAttackMontageObject.Succeeded())
+	if (AttackPrimaryAMontageObject.Succeeded())
 	{
-		MeleeSwordAttackMontage = MeleeSwordAttackMontageObject.Object;
+		AttackPrimaryAMontage = AttackPrimaryAMontageObject.Object;
+	}
+	if (AttackPrimaryBMontageObject.Succeeded())
+	{
+		AttackPrimaryBMontage = AttackPrimaryBMontageObject.Object;
+	}
+	if (AttackPrimaryCMontageObject.Succeeded())
+	{
+		AttackPrimaryCMontage = AttackPrimaryCMontageObject.Object;
 	}
 }
 
@@ -73,21 +83,65 @@ void ATestDummy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 	PlayerInputComponent->BindAxis(TEXT("LookRightRate"), this, &ATestDummy::LookRightRate);
 	PlayerInputComponent->BindAxis(TEXT("LookRight"), this, &APawn::AddControllerYawInput);
 	PlayerInputComponent->BindAction(TEXT("Attack"), EInputEvent::IE_Pressed, this, &ATestDummy::AttackInput);
-	PlayerInputComponent->BindAction(TEXT("Attack"), EInputEvent::IE_Released, this, &ATestDummy::AttackEnd);
+	//PlayerInputComponent->BindAction(TEXT("Attack"), EInputEvent::IE_Released, this, &ATestDummy::AttackEnd);
 }
 
 void ATestDummy::AttackInput()
 {
-	//Generate a random attack number between 1-4
-	int MontageSectionIndex = FMath::RandRange(1, 4);
+	if (IsAttacking) {
+		SaveAttack = true;
+	}
+	else {
+		IsAttacking = true;
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Magenta, FString::FromInt(AttackCount));
+		switch (AttackCount) {
+		case 0:
+			AttackCount = 1;
+			PlayAnimMontage(AttackPrimaryAMontage, AttackSpeed, NAME_None);
 
-	//Create a string to reference the start an attack animation sections
-	FString MontageSection = "Start_" + FString::FromInt(MontageSectionIndex);
+			break;
+		case 1:
+			AttackCount = 2;
+			PlayAnimMontage(AttackPrimaryBMontage, AttackSpeed, NAME_None);
 
-	//Play that animations and sound
+			break;
+		case 2:
+			AttackCount = 0;
+			PlayAnimMontage(AttackPrimaryCMontage, AttackSpeed, NAME_None);
+			break;
+		}
+	}
+}
 
-	PlayAnimMontage(MeleeSwordAttackMontage, 1.f, FName(*MontageSection));
-	MeleeWeapon->SwordSwingAudioComponent->Play();
+void ATestDummy::SaveAttackCombo()
+{
+	if (SaveAttack) {
+		SaveAttack = false;
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Magenta, FString::FromInt(AttackCount));
+		switch (AttackCount) {
+		case 0:
+			AttackCount = 1;
+			PlayAnimMontage(AttackPrimaryAMontage, AttackSpeed, NAME_None);
+
+			break;
+		case 1:
+			AttackCount = 2;
+			PlayAnimMontage(AttackPrimaryBMontage, AttackSpeed, NAME_None);
+
+			break;
+		case 2:
+			AttackCount = 0;
+			PlayAnimMontage(AttackPrimaryCMontage, AttackSpeed, NAME_None);
+			break;
+		}
+	}
+}
+
+void ATestDummy::ResetAttackCombo()
+{
+	AttackCount = 0;
+	IsAttacking = false;
+	SaveAttack = false;
 }
 
 void ATestDummy::AttackStart()
@@ -111,6 +165,11 @@ void ATestDummy::AttackEnd()
 		WeaponCollisionBox->SetNotifyRigidBodyCollision(false);
 		/*	WeaponCollisionBox->SetGenerateOverlapEvents(false);*/
 	}
+}
+
+void ATestDummy::AttackSound()
+{
+	MeleeWeapon->SwordSwingAudioComponent->Play();
 }
 
 void ATestDummy::MoveForward(float AxisValue)
