@@ -30,11 +30,11 @@ ATestDummy::ATestDummy()
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	// Load our attack montage
+	// Find out attack montages by their refrence from the editor
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> AttackPrimaryAMontageObject(TEXT("AnimMontage'/Game/Blueprints/TestDummy/Animations/Attack_PrimaryA_Montage.Attack_PrimaryA_Montage'"));
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> AttackPrimaryBMontageObject(TEXT("AnimMontage'/Game/Blueprints/TestDummy/Animations/Attack_PrimaryB_Montage.Attack_PrimaryB_Montage'"));
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> AttackPrimaryCMontageObject(TEXT("AnimMontage'/Game/Blueprints/TestDummy/Animations/Attack_PrimaryC_Montage.Attack_PrimaryC_Montage'"));
-
+	//if they are found in the editor asign them to the variables we created
 	if (AttackPrimaryAMontageObject.Succeeded())
 	{
 		AttackPrimaryAMontage = AttackPrimaryAMontageObject.Object;
@@ -83,62 +83,55 @@ void ATestDummy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 	PlayerInputComponent->BindAxis(TEXT("LookRightRate"), this, &ATestDummy::LookRightRate);
 	PlayerInputComponent->BindAxis(TEXT("LookRight"), this, &APawn::AddControllerYawInput);
 	PlayerInputComponent->BindAction(TEXT("Attack"), EInputEvent::IE_Pressed, this, &ATestDummy::AttackInput);
-	//PlayerInputComponent->BindAction(TEXT("Attack"), EInputEvent::IE_Released, this, &ATestDummy::AttackEnd);
 }
 
 void ATestDummy::AttackInput()
 {
+	//is we are already attack save our attack
 	if (IsAttacking) {
 		SaveAttack = true;
 	}
+	//if we arent attacking set attacking to true and play the next animation
 	else {
 		IsAttacking = true;
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Magenta, FString::FromInt(AttackCount));
-		switch (AttackCount) {
-		case 0:
-			AttackCount = 1;
-			PlayAnimMontage(AttackPrimaryAMontage, AttackSpeed, NAME_None);
+		PlayComboAnimation();
+	}
+}
 
-			break;
-		case 1:
-			AttackCount = 2;
-			PlayAnimMontage(AttackPrimaryBMontage, AttackSpeed, NAME_None);
+void ATestDummy::PlayComboAnimation()
+{
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Magenta, FString::FromInt(AttackCount));
+	//A switch to ply out combo attacks in order
+	switch (AttackCount) {
+	case 0:
+		AttackCount = 1;
+		PlayAnimMontage(AttackPrimaryAMontage, AttackSpeed, NAME_None);
 
-			break;
-		case 2:
-			AttackCount = 0;
-			PlayAnimMontage(AttackPrimaryCMontage, AttackSpeed, NAME_None);
-			break;
-		}
+		break;
+	case 1:
+		AttackCount = 2;
+		PlayAnimMontage(AttackPrimaryBMontage, AttackSpeed, NAME_None);
+
+		break;
+	case 2:
+		AttackCount = 0;
+		PlayAnimMontage(AttackPrimaryCMontage, AttackSpeed, NAME_None);
+		break;
 	}
 }
 
 void ATestDummy::SaveAttackCombo()
 {
+	//if we have an attack saved clear it and play our animation
 	if (SaveAttack) {
 		SaveAttack = false;
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Magenta, FString::FromInt(AttackCount));
-		switch (AttackCount) {
-		case 0:
-			AttackCount = 1;
-			PlayAnimMontage(AttackPrimaryAMontage, AttackSpeed, NAME_None);
-
-			break;
-		case 1:
-			AttackCount = 2;
-			PlayAnimMontage(AttackPrimaryBMontage, AttackSpeed, NAME_None);
-
-			break;
-		case 2:
-			AttackCount = 0;
-			PlayAnimMontage(AttackPrimaryCMontage, AttackSpeed, NAME_None);
-			break;
-		}
+		PlayComboAnimation();
 	}
 }
 
 void ATestDummy::ResetAttackCombo()
-{
+{//reset our combo by seting the counter to 0 and clearing both ISAttaking and SaveAttack
 	AttackCount = 0;
 	IsAttacking = false;
 	SaveAttack = false;
@@ -146,8 +139,6 @@ void ATestDummy::ResetAttackCombo()
 
 void ATestDummy::AttackStart()
 {
-	//Log to screen
-
 	//Activate collider
 	//Need to refactor this, causes UE to crash when opening the anim montage
 	if (WeaponCollisionBox != nullptr) {
@@ -169,6 +160,7 @@ void ATestDummy::AttackEnd()
 
 void ATestDummy::AttackSound()
 {
+	//Plays "Woosh" Sound at the correct time
 	MeleeWeapon->SwordSwingAudioComponent->Play();
 }
 

@@ -25,6 +25,9 @@ public:
 
 	//Trigger attack animations based on user input
 	void AttackInput();
+	//Plays the next animation in out AttackCombo
+	void PlayComboAnimation();
+
 	//Allows the current attack combo to continue
 	void SaveAttackCombo();
 	//Resets our combo after some time
