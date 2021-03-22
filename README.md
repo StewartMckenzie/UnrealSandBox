@@ -2,7 +2,8 @@
 
 This project serves as a place to experiment with ideas and systems that I want to learn and possibly put into a games.
 I think of it as a repository for template code/ideas that can be polished and customized for whatever game I am trying to make at the time
- 
+
+[For more better breakdown checkout the Milanote view](https://app.milanote.com/1Lo7yg1CtfdMcz/unreal-sandbox)
  
  ## In Progress
 
@@ -23,4 +24,4 @@ I think of it as a repository for template code/ideas that can be polished and c
 ## Repository
 
 
-[For more details checkout the Milanote view](https://app.milanote.com/1Lo7yg1CtfdMcz/unreal-sandbox)
+
