@@ -31,6 +31,26 @@ public:
 		class UAnimMontage* AttackPrimaryBMontage;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 		class UAnimMontage* AttackPrimaryCMontage;
+	// Returns IsAnimationBlended for branching animations in blue prints
+	UFUNCTION(BlueprintCallable, Category = Animation)
+		bool IsAnimationBlended();
+
+	UFUNCTION(BlueprintCallable, Category = Animation)
+		bool IsArmed();
+
+	UFUNCTION()
+		void CrouchStart();
+	UFUNCTION()
+		void CrouchEnd();
+
+	UFUNCTION()
+		void ArmPlayer();
+
+	UFUNCTION()
+		void TriggerCountdownToIdle();
+	//how long it take you to un arm
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Trace)
+		int MaxCountdownToIdle;
 
 	//Trigger attack animations based on user input
 	void AttackInput();
@@ -88,4 +108,9 @@ private:
 	UPROPERTY(VisibleAnywhere)
 		int AttackSpeed = 1.7;
 	UBoxComponent* WeaponCollisionBox;
+	bool bIsAnimationBlended;
+
+	bool bIsArmed;
+	FTimerHandle ArmedToIdleTimerHandle;
+	int CountDownToIdle;
 };

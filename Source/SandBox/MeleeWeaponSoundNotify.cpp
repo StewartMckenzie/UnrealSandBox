@@ -13,7 +13,6 @@ void UMeleeWeaponSoundNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequ
 			ATestDummy* Player = Cast<ATestDummy>(MeshComp->GetOwner());
 			//Save our combo
 			if (Player) {
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Magenta, TEXT("Sound"));
 				Player->AttackSound();
 			}
 		}

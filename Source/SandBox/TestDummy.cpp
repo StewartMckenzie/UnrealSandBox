@@ -95,6 +95,9 @@ void ATestDummy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 	PlayerInputComponent->BindAxis(TEXT("LookRightRate"), this, &ATestDummy::LookRightRate);
 	PlayerInputComponent->BindAxis(TEXT("LookRight"), this, &APawn::AddControllerYawInput);
 	PlayerInputComponent->BindAction(TEXT("Attack"), EInputEvent::IE_Pressed, this, &ATestDummy::AttackInput);
+	PlayerInputComponent->BindAction(TEXT("Crouch"), EInputEvent::IE_Pressed, this, &ATestDummy::CrouchStart);
+	PlayerInputComponent->BindAction(TEXT("Crouch"), EInputEvent::IE_Released, this, &ATestDummy::CrouchEnd);
+	PlayerInputComponent->BindAction(TEXT("ArmPlayer"), EInputEvent::IE_Released, this, &ATestDummy::ArmPlayer);
 }
 
 void ATestDummy::AttackInput()
@@ -112,7 +115,6 @@ void ATestDummy::AttackInput()
 
 void ATestDummy::PlayComboAnimation()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Magenta, FString::FromInt(AttackCount));
 	//A switch to ply out combo attacks in order
 	switch (AttackCount) {
 	case 0:
@@ -130,6 +132,9 @@ void ATestDummy::PlayComboAnimation()
 		PlayAnimMontage(AttackPrimaryCMontage, AttackSpeed, NAME_None);
 		break;
 	}
+	if (!bIsArmed) {
+		bIsArmed = true;
+	}
 }
 
 void ATestDummy::SaveAttackCombo()
@@ -137,7 +142,6 @@ void ATestDummy::SaveAttackCombo()
 	//if we have an attack saved clear it and play our animation
 	if (SaveAttack) {
 		SaveAttack = false;
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Magenta, FString::FromInt(AttackCount));
 		PlayComboAnimation();
 	}
 }
@@ -168,12 +172,66 @@ void ATestDummy::AttackEnd()
 		WeaponCollisionBox->SetNotifyRigidBodyCollision(false);
 		/*	WeaponCollisionBox->SetGenerateOverlapEvents(false);*/
 	}
+	//Check if our timer is still going
+	bool bIsCountdownActive = GetWorld()->GetTimerManager().IsTimerActive(ArmedToIdleTimerHandle);
+
+	if (bIsCountdownActive) {
+		//reset timer
+		GetWorld()->GetTimerManager().ClearTimer(ArmedToIdleTimerHandle);
+	}
+	//Start timer again
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Magenta, FString::FromInt(CountDownToIdle));
+	CountDownToIdle = MaxCountdownToIdle;
+	GetWorld()->GetTimerManager().SetTimer(ArmedToIdleTimerHandle, this, &ATestDummy::TriggerCountdownToIdle, 1.f, true);
 }
 
 void ATestDummy::AttackSound()
 {
 	//Plays "Woosh" Sound at the correct time
 	MeleeWeapon->SwordSwingAudioComponent->Play();
+}
+
+bool ATestDummy::IsAnimationBlended()
+{
+	return bIsAnimationBlended;
+}
+
+bool ATestDummy::IsArmed()
+{
+	return bIsArmed;
+}
+
+void ATestDummy::CrouchStart()
+{
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Magenta, TEXT("Crouch"));
+	Crouch();
+}
+
+void ATestDummy::CrouchEnd()
+{
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Magenta, TEXT("UnCrouch"));
+	UnCrouch();
+}
+
+void ATestDummy::ArmPlayer()
+{
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Magenta, bIsArmed ? " Armed" : "Not Armed");
+	bIsArmed = !bIsArmed;
+
+	if (!bIsArmed) {
+		CountDownToIdle = MaxCountdownToIdle;
+		GetWorld()->GetTimerManager().ClearTimer(ArmedToIdleTimerHandle);
+	}
+}
+
+void ATestDummy::TriggerCountdownToIdle()
+{
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Magenta, FString::FromInt(CountDownToIdle));
+	if (--CountDownToIdle <= 0) {
+		bIsArmed = false;
+		CountDownToIdle = MaxCountdownToIdle;
+		GetWorld()->GetTimerManager().ClearTimer(ArmedToIdleTimerHandle);
+	}
 }
 
 void ATestDummy::MoveForward(float AxisValue)
