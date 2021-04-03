@@ -12,6 +12,7 @@ UTestDummyAnimInstance::UTestDummyAnimInstance()
 	bIsInAir = false;
 	bIsAnimationBlended = true;
 	Speed = 0.f;
+	RootMotionMode = ERootMotionMode::RootMotionFromEverything;
 }
 
 void UTestDummyAnimInstance::NativeInitializeAnimation()
@@ -43,6 +44,7 @@ void UTestDummyAnimInstance::NativeUpdateAnimation(float DeltaTimeX)
 			Speed = PlayerCharacter->GetVelocity().Size();
 			bIsCrouching = PlayerCharacter->GetMovementComponent()->IsCrouching();
 			bIsArmed = PlayerCharacter->IsArmed();
+			bIsRolling = PlayerCharacter->IsRolling();
 			bIsMoving = Speed > 0 ? true : false;
 			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, "IsInAir: " + FString(IsInAir ? "true" : "false"));
 			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, "IsAnimationBlended: " + FString(IsAnimationBlended ? "true" : "false"));

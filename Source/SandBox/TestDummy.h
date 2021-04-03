@@ -31,6 +31,9 @@ public:
 		class UAnimMontage* AttackPrimaryBMontage;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 		class UAnimMontage* AttackPrimaryCMontage;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+		class UAnimMontage* RollMontage;
+
 	// Returns IsAnimationBlended for branching animations in blue prints
 	UFUNCTION(BlueprintCallable, Category = Animation)
 		bool IsAnimationBlended();
@@ -38,13 +41,41 @@ public:
 	UFUNCTION(BlueprintCallable, Category = Animation)
 		bool IsArmed();
 
+	UFUNCTION(BlueprintCallable, Category = Animation)
+		float GetMoveRight();
+
+	UFUNCTION(BlueprintCallable, Category = Animation)
+		float GetMoveForward();
+
+	UFUNCTION(BlueprintCallable, Category = Animation)
+		bool IsSprintning();
+
+	UFUNCTION(BlueprintCallable, Category = Animation)
+		bool IsRolling();
+
+	UFUNCTION()
+		void RollStart();
+
+	UFUNCTION()
+		void RollEnd();
+
 	UFUNCTION()
 		void CrouchStart();
+
 	UFUNCTION()
 		void CrouchEnd();
 
 	UFUNCTION()
-		void ArmPlayer();
+		void ArmPlayer(bool Value);
+
+	UFUNCTION()
+		void ArmPlayerImmediately();
+
+	UFUNCTION()
+		void SprintStart();
+
+	UFUNCTION()
+		void SprintEnd();
 
 	UFUNCTION()
 		void TriggerCountdownToIdle();
@@ -52,10 +83,19 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Trace)
 		int MaxCountdownToIdle;
 
+	UPROPERTY(VisibleAnywhere)
+		float MaxCrouchSpeed;
+	UPROPERTY(VisibleAnywhere)
+		float MaxWalkSpeed;
+	UPROPERTY(VisibleAnywhere)
+		float MaxSprintSpeed;
+	UPROPERTY(VisibleAnywhere)
+		float MaxArmedSpeed;
 	//Trigger attack animations based on user input
 	void AttackInput();
 	//Plays the next animation in out AttackCombo
 	void PlayComboAnimation();
+	void PlayRollAnimation();
 
 	//Allows the current attack combo to continue
 	void SaveAttackCombo();
@@ -107,9 +147,13 @@ private:
 		int AttackCount = 0;
 	UPROPERTY(VisibleAnywhere)
 		int AttackSpeed = 1.7;
+
+	bool bIsSprintning;
+	float MoveForwardValue;
+	float MoveRightValue;
 	UBoxComponent* WeaponCollisionBox;
 	bool bIsAnimationBlended;
-
+	bool bIsRolling;
 	bool bIsArmed;
 	FTimerHandle ArmedToIdleTimerHandle;
 	int CountDownToIdle;

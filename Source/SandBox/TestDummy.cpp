@@ -16,9 +16,9 @@ ATestDummy::ATestDummy()
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 
 	// Don't rotate when the controller rotates. Let that just affect the camera.
-	this->bUseControllerRotationPitch = false;
-	this->bUseControllerRotationYaw = false;
-	this->bUseControllerRotationRoll = false;
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationYaw = false;
+	bUseControllerRotationRoll = false;
 
 	// Configure character movement
 	GetCharacterMovement()->bOrientRotationToMovement = true;			 // Character moves in the direction of input...
@@ -46,6 +46,8 @@ ATestDummy::ATestDummy()
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> AttackPrimaryAMontageObject(TEXT("AnimMontage'/Game/Blueprints/TestDummy/Animations/Attack_PrimaryA_Montage.Attack_PrimaryA_Montage'"));
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> AttackPrimaryBMontageObject(TEXT("AnimMontage'/Game/Blueprints/TestDummy/Animations/Attack_PrimaryB_Montage.Attack_PrimaryB_Montage'"));
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> AttackPrimaryCMontageObject(TEXT("AnimMontage'/Game/Blueprints/TestDummy/Animations/Attack_PrimaryC_Montage.Attack_PrimaryC_Montage'"));
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> RollMontageObject(TEXT("AnimMontage'/Game/Blueprints/TestDummy/Animations/RollMontage.RollMontage'"));
+
 	//if they are found in the editor asign them to the variables we created
 	if (AttackPrimaryAMontageObject.Succeeded())
 	{
@@ -58,6 +60,10 @@ ATestDummy::ATestDummy()
 	if (AttackPrimaryCMontageObject.Succeeded())
 	{
 		AttackPrimaryCMontage = AttackPrimaryCMontageObject.Object;
+	}
+	if (RollMontageObject.Succeeded())
+	{
+		RollMontage = RollMontageObject.Object;
 	}
 }
 
@@ -75,6 +81,14 @@ void ATestDummy::BeginPlay()
 		//Grab your weapons box collision
 		WeaponCollisionBox = MeleeWeapon->FindComponentByClass<UBoxComponent>();
 	}
+	bIsAnimationBlended = true;
+	MaxCountdownToIdle = 5;
+	MaxCrouchSpeed = 175.f;
+	MaxWalkSpeed = 350.0f;
+	MaxSprintSpeed = 650.0f;
+	//MaxArmedSpeed = 200.f;
+	GetCharacterMovement()->MaxWalkSpeed = MaxWalkSpeed;
+	GetCharacterMovement()->MaxWalkSpeedCrouched = MaxCrouchSpeed;
 }
 
 // Called every frame
@@ -97,7 +111,10 @@ void ATestDummy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 	PlayerInputComponent->BindAction(TEXT("Attack"), EInputEvent::IE_Pressed, this, &ATestDummy::AttackInput);
 	PlayerInputComponent->BindAction(TEXT("Crouch"), EInputEvent::IE_Pressed, this, &ATestDummy::CrouchStart);
 	PlayerInputComponent->BindAction(TEXT("Crouch"), EInputEvent::IE_Released, this, &ATestDummy::CrouchEnd);
-	PlayerInputComponent->BindAction(TEXT("ArmPlayer"), EInputEvent::IE_Released, this, &ATestDummy::ArmPlayer);
+	PlayerInputComponent->BindAction(TEXT("ArmPlayer"), EInputEvent::IE_Released, this, &ATestDummy::ArmPlayerImmediately);
+	PlayerInputComponent->BindAction(TEXT("Sprint"), EInputEvent::IE_Pressed, this, &ATestDummy::SprintStart);
+	PlayerInputComponent->BindAction(TEXT("Sprint"), EInputEvent::IE_Released, this, &ATestDummy::SprintEnd);
+	PlayerInputComponent->BindAction(TEXT("Roll"), EInputEvent::IE_Pressed, this, &ATestDummy::RollStart);
 }
 
 void ATestDummy::AttackInput()
@@ -180,7 +197,7 @@ void ATestDummy::AttackEnd()
 		GetWorld()->GetTimerManager().ClearTimer(ArmedToIdleTimerHandle);
 	}
 	//Start timer again
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Magenta, FString::FromInt(CountDownToIdle));
+
 	CountDownToIdle = MaxCountdownToIdle;
 	GetWorld()->GetTimerManager().SetTimer(ArmedToIdleTimerHandle, this, &ATestDummy::TriggerCountdownToIdle, 1.f, true);
 }
@@ -201,22 +218,63 @@ bool ATestDummy::IsArmed()
 	return bIsArmed;
 }
 
+float ATestDummy::GetMoveRight()
+{
+	return MoveRightValue;
+}
+
+float ATestDummy::GetMoveForward()
+{
+	return MoveForwardValue;
+}
+
+bool ATestDummy::IsSprintning()
+{
+	return bIsSprintning;
+}
+
+bool ATestDummy::IsRolling()
+{
+	return bIsRolling;
+}
+
+void ATestDummy::RollStart()
+
+{
+	if (!GetCharacterMovement()->GetLastInputVector().Equals(FVector(0))) {
+		bIsRolling = true;
+		PlayRollAnimation();
+	}
+}
+
+void ATestDummy::PlayRollAnimation()
+{
+	if (!GetMesh()->GetAnimInstance()->Montage_IsPlaying(RollMontage)) {
+		SetActorRotation(GetCharacterMovement()->GetLastInputVector().Rotation());
+		PlayAnimMontage(RollMontage, 1, NAME_None);
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Magenta, bIsRolling ? TEXT("Roll") : TEXT("DOnT ROLL"));
+	}
+}
+
+void ATestDummy::RollEnd()
+{
+	bIsRolling = false;
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Magenta, TEXT("Roll END"));
+}
+
 void ATestDummy::CrouchStart()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Magenta, TEXT("Crouch"));
 	Crouch();
 }
 
 void ATestDummy::CrouchEnd()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Magenta, TEXT("UnCrouch"));
 	UnCrouch();
 }
 
-void ATestDummy::ArmPlayer()
+void ATestDummy::ArmPlayer(bool Value)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Magenta, bIsArmed ? " Armed" : "Not Armed");
-	bIsArmed = !bIsArmed;
+	bIsArmed = Value;
 
 	if (!bIsArmed) {
 		CountDownToIdle = MaxCountdownToIdle;
@@ -224,9 +282,31 @@ void ATestDummy::ArmPlayer()
 	}
 }
 
+void ATestDummy::ArmPlayerImmediately()
+{
+	ArmPlayer(!bIsArmed);
+}
+
+void ATestDummy::SprintStart()
+{
+	if (!bIsCrouched)
+	{
+		bIsSprintning = true;
+		GetCharacterMovement()->MaxWalkSpeed = MaxSprintSpeed;
+	}
+}
+
+void ATestDummy::SprintEnd()
+{
+	if (!bIsCrouched)
+	{
+		bIsSprintning = false;
+		GetCharacterMovement()->MaxWalkSpeed = MaxWalkSpeed;
+	}
+}
+
 void ATestDummy::TriggerCountdownToIdle()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Magenta, FString::FromInt(CountDownToIdle));
 	if (--CountDownToIdle <= 0) {
 		bIsArmed = false;
 		CountDownToIdle = MaxCountdownToIdle;
@@ -236,8 +316,7 @@ void ATestDummy::TriggerCountdownToIdle()
 
 void ATestDummy::MoveForward(float AxisValue)
 {
-	if ((Controller != NULL) && (AxisValue != 0.0f))
-	{
+	if ((Controller != NULL) && (AxisValue != 0.0f)) {
 		// find out which way is forward
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);

@@ -32,6 +32,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 		bool bIsMoving;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+		bool bIsRolling;
+
 public:
 	UTestDummyAnimInstance();
 	virtual void NativeInitializeAnimation() override;
