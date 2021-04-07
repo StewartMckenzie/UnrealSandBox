@@ -36,19 +36,44 @@ void UTestDummyAnimInstance::NativeUpdateAnimation(float DeltaTimeX)
 	if (Owner->IsA(ATestDummy::StaticClass()))
 	{
 		ATestDummy* PlayerCharacter = Cast<ATestDummy>(Owner);
-		// again check pointers
+		bIsInAir = PlayerCharacter->GetMovementComponent()->IsFalling();
+		bIsAnimationBlended = PlayerCharacter->IsAnimationBlended();
+		Speed = PlayerCharacter->GetVelocity().Size();
+		bIsCrouching = PlayerCharacter->GetMovementComponent()->IsCrouching();
+		bIsArmed = PlayerCharacter->IsArmed();
+		bIsRolling = PlayerCharacter->IsRolling();
+		bIsMoving = Speed > 0 ? true : false;
+
 		if (PlayerCharacter)
 		{
-			bIsInAir = PlayerCharacter->GetMovementComponent()->IsFalling();
-			bIsAnimationBlended = PlayerCharacter->IsAnimationBlended();
-			Speed = PlayerCharacter->GetVelocity().Size();
-			bIsCrouching = PlayerCharacter->GetMovementComponent()->IsCrouching();
-			bIsArmed = PlayerCharacter->IsArmed();
-			bIsRolling = PlayerCharacter->IsRolling();
-			bIsMoving = Speed > 0 ? true : false;
-			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, "IsInAir: " + FString(IsInAir ? "true" : "false"));
-			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, "IsAnimationBlended: " + FString(IsAnimationBlended ? "true" : "false"));
-			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, "Speed: " + FString::SanitizeFloat(Speed));
+			if (ShouldRotate) {
+				TimeElapsed = TimeElapsed + GetWorld()->GetDeltaSeconds();
+				if (TimeElapsed <= RotateTime) {
+					PlayerCharacter->SetActorRotation(FMath::RInterpConstantTo(PlayerCharacter->GetActorRotation(), PlayerCharacter->GetDesiredRotation(), GetWorld()->GetDeltaSeconds(), MaxDegreesPerSecond));
+				}
+			}
+			else {
+				StopRotating();
+			}
+
+			// again check pointers
+
+				//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, "IsInAir: " + FString(IsInAir ? "true" : "false"));
+				//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, "IsAnimationBlended: " + FString(IsAnimationBlended ? "true" : "false"));
+				//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, "Speed: " + FString::SanitizeFloat(Speed));
 		}
 	}
+}
+
+void UTestDummyAnimInstance::StartRotatingWithLimit(float MaxPossibleRotation, float MaxDegreesPS)
+{
+	RotateTime = MaxPossibleRotation / MaxDegreesPS;
+	MaxDegreesPerSecond = MaxDegreesPS;
+	TimeElapsed = 0.f;
+	ShouldRotate = true;
+}
+
+void UTestDummyAnimInstance::StopRotating()
+{
+	ShouldRotate = false;
 }

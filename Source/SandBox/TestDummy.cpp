@@ -47,6 +47,7 @@ ATestDummy::ATestDummy()
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> AttackPrimaryBMontageObject(TEXT("AnimMontage'/Game/Blueprints/TestDummy/Animations/Attack_PrimaryB_Montage.Attack_PrimaryB_Montage'"));
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> AttackPrimaryCMontageObject(TEXT("AnimMontage'/Game/Blueprints/TestDummy/Animations/Attack_PrimaryC_Montage.Attack_PrimaryC_Montage'"));
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> RollMontageObject(TEXT("AnimMontage'/Game/Blueprints/TestDummy/Animations/RollMontage.RollMontage'"));
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> StepBackMontageObject(TEXT("AnimMontage'/Game/Blueprints/TestDummy/Animations/StepBackMontage.StepBackMontage'"));
 
 	//if they are found in the editor asign them to the variables we created
 	if (AttackPrimaryAMontageObject.Succeeded())
@@ -64,6 +65,10 @@ ATestDummy::ATestDummy()
 	if (RollMontageObject.Succeeded())
 	{
 		RollMontage = RollMontageObject.Object;
+	}
+	if (StepBackMontageObject.Succeeded())
+	{
+		StepBackMontage = StepBackMontageObject.Object;
 	}
 }
 
@@ -238,27 +243,59 @@ bool ATestDummy::IsRolling()
 	return bIsRolling;
 }
 
+bool ATestDummy::IsSteppingBack()
+{
+	return bIsSteppingBack;
+}
+
 void ATestDummy::RollStart()
 
 {
-	if (!GetCharacterMovement()->GetLastInputVector().Equals(FVector(0))) {
+	if (HasMovementInput() && !GetCharacterMovement()->IsFalling()) {
 		bIsRolling = true;
-		PlayRollAnimation();
+		SetActorRotation(GetCharacterMovement()->GetLastInputVector().Rotation());
+		PlayHighPriorityMontage(RollMontage);
+	}
+	else {
+		bIsSteppingBack = true;
+		PlayHighPriorityMontage(StepBackMontage, 2);
 	}
 }
 
-void ATestDummy::PlayRollAnimation()
+bool ATestDummy::HasMovementInput()
 {
-	if (!GetMesh()->GetAnimInstance()->Montage_IsPlaying(RollMontage)) {
-		SetActorRotation(GetCharacterMovement()->GetLastInputVector().Rotation());
-		PlayAnimMontage(RollMontage, 1, NAME_None);
+	return !GetCharacterMovement()->GetLastInputVector().Equals(FVector(0));
+}
+
+FRotator ATestDummy::GetDesiredRotation()
+{
+	if (HasMovementInput()) {
+		return GetCharacterMovement()->GetLastInputVector().Rotation();
+	}
+	else {
+		return GetActorRotation();
+	}
+}
+
+void ATestDummy::PlayHighPriorityMontage(UAnimMontage* AnimMontage, int PlayRate)
+{
+	if (!GetMesh()->GetAnimInstance()->Montage_IsPlaying(AnimMontage)) {
+		HighPriorityMontage = AnimMontage;
+
+		PlayAnimMontage(HighPriorityMontage, PlayRate, NAME_None);
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Magenta, bIsRolling ? TEXT("Roll") : TEXT("DOnT ROLL"));
 	}
 }
 
 void ATestDummy::RollEnd()
 {
-	bIsRolling = false;
+	if (bIsRolling) {
+		bIsRolling = false;
+	}
+	else {
+		bIsSteppingBack = false;
+	}
+
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Magenta, TEXT("Roll END"));
 }
 

@@ -41,6 +41,13 @@ public:
 
 	virtual void NativeUpdateAnimation(float DeltaTimeX) override;
 
+	void StartRotatingWithLimit(float MaxPossibleRotation, float MaxDegreesPerSecond);
+	void StopRotating();
+	bool ShouldRotate = false;
+	float TimeElapsed = 0;
+	float RotateTime;
+	float MaxDegreesPerSecond = 720;
+
 private:
 	APawn* Owner;
 };

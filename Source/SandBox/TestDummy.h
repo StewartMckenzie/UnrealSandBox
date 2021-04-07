@@ -33,6 +33,8 @@ public:
 		class UAnimMontage* AttackPrimaryCMontage;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 		class UAnimMontage* RollMontage;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+		class UAnimMontage* StepBackMontage;
 
 	// Returns IsAnimationBlended for branching animations in blue prints
 	UFUNCTION(BlueprintCallable, Category = Animation)
@@ -52,9 +54,17 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = Animation)
 		bool IsRolling();
+	UFUNCTION(BlueprintCallable, Category = Animation)
+		bool IsSteppingBack();
 
 	UFUNCTION()
 		void RollStart();
+
+	UFUNCTION()
+		bool HasMovementInput();
+
+	UFUNCTION()
+		FRotator GetDesiredRotation();
 
 	UFUNCTION()
 		void RollEnd();
@@ -95,7 +105,7 @@ public:
 	void AttackInput();
 	//Plays the next animation in out AttackCombo
 	void PlayComboAnimation();
-	void PlayRollAnimation();
+	void PlayHighPriorityMontage(UAnimMontage* AnimMontage, int PlayRate = 1);
 
 	//Allows the current attack combo to continue
 	void SaveAttackCombo();
@@ -122,6 +132,7 @@ public:
 
 private:
 	//x and y movement
+
 	void MoveForward(float AxisValue);
 	void MoveRight(float AxisValue);
 	//x and y camera rotations for controller
@@ -147,6 +158,7 @@ private:
 		int AttackCount = 0;
 	UPROPERTY(VisibleAnywhere)
 		int AttackSpeed = 1.7;
+	UAnimMontage* HighPriorityMontage;
 
 	bool bIsSprintning;
 	float MoveForwardValue;
@@ -154,6 +166,7 @@ private:
 	UBoxComponent* WeaponCollisionBox;
 	bool bIsAnimationBlended;
 	bool bIsRolling;
+	bool bIsSteppingBack;
 	bool bIsArmed;
 	FTimerHandle ArmedToIdleTimerHandle;
 	int CountDownToIdle;
