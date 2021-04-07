@@ -106,6 +106,7 @@ public:
 	//Plays the next animation in out AttackCombo
 	void PlayComboAnimation();
 	void PlayHighPriorityMontage(UAnimMontage* AnimMontage, int PlayRate = 1);
+	void TryPlayMontage(UAnimMontage* AnimMontage, int PlayRate = 1);
 
 	//Allows the current attack combo to continue
 	void SaveAttackCombo();

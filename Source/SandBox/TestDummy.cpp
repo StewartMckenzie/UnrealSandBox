@@ -251,14 +251,18 @@ bool ATestDummy::IsSteppingBack()
 void ATestDummy::RollStart()
 
 {
-	if (HasMovementInput() && !GetCharacterMovement()->IsFalling()) {
-		bIsRolling = true;
-		SetActorRotation(GetCharacterMovement()->GetLastInputVector().Rotation());
-		PlayHighPriorityMontage(RollMontage);
-	}
-	else {
-		bIsSteppingBack = true;
-		PlayHighPriorityMontage(StepBackMontage, 2);
+	if (!GetCharacterMovement()->IsFalling()) {
+		if (!GetMesh()->GetAnimInstance()->Montage_IsPlaying(StepBackMontage)) {
+			if (HasMovementInput()) {
+				bIsRolling = true;
+				SetActorRotation(GetCharacterMovement()->GetLastInputVector().Rotation());
+				PlayHighPriorityMontage(RollMontage);
+			}
+			else {
+				bIsSteppingBack = true;
+				TryPlayMontage(StepBackMontage, 2);
+			}
+		}
 	}
 }
 
@@ -283,7 +287,13 @@ void ATestDummy::PlayHighPriorityMontage(UAnimMontage* AnimMontage, int PlayRate
 		HighPriorityMontage = AnimMontage;
 
 		PlayAnimMontage(HighPriorityMontage, PlayRate, NAME_None);
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Magenta, bIsRolling ? TEXT("Roll") : TEXT("DOnT ROLL"));
+	}
+}
+
+void ATestDummy::TryPlayMontage(UAnimMontage* AnimMontage, int PlayRate /*= 1*/)
+{
+	if (!GetMesh()->GetAnimInstance()->IsAnyMontagePlaying()) {
+		PlayAnimMontage(AnimMontage, PlayRate, NAME_None);
 	}
 }
 
