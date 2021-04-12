@@ -42,14 +42,14 @@ ATestDummy::ATestDummy()
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	// Find out attack montages by their refrence from the editor
+	// Find out attack montages by their reference from the editor
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> AttackPrimaryAMontageObject(TEXT("AnimMontage'/Game/Blueprints/TestDummy/Animations/Attack_PrimaryA_Montage.Attack_PrimaryA_Montage'"));
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> AttackPrimaryBMontageObject(TEXT("AnimMontage'/Game/Blueprints/TestDummy/Animations/Attack_PrimaryB_Montage.Attack_PrimaryB_Montage'"));
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> AttackPrimaryCMontageObject(TEXT("AnimMontage'/Game/Blueprints/TestDummy/Animations/Attack_PrimaryC_Montage.Attack_PrimaryC_Montage'"));
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> RollMontageObject(TEXT("AnimMontage'/Game/Blueprints/TestDummy/Animations/RollMontage.RollMontage'"));
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> StepBackMontageObject(TEXT("AnimMontage'/Game/Blueprints/TestDummy/Animations/StepBackMontage.StepBackMontage'"));
 
-	//if they are found in the editor asign them to the variables we created
+	//if they are found in the editor assign them to the variables we created
 	if (AttackPrimaryAMontageObject.Succeeded())
 	{
 		AttackPrimaryAMontage = AttackPrimaryAMontageObject.Object;
@@ -124,14 +124,17 @@ void ATestDummy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 
 void ATestDummy::AttackInput()
 {
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, "IsAttacking: " + FString(IsAttacking ? "true" : "false"));
 	//is we are already attack save our attack
-	if (IsAttacking) {
-		SaveAttack = true;
-	}
-	//if we aren't attacking set attacking to true and play the next animation
-	else {
-		IsAttacking = true;
-		PlayComboAnimation();
+	if (!bIsRolling) {
+		if (IsAttacking) {
+			SaveAttack = true;
+		}
+		//if we aren't attacking set attacking to true and play the next animation
+		else {
+			IsAttacking = true;
+			PlayComboAnimation();
+		}
 	}
 }
 
@@ -161,6 +164,7 @@ void ATestDummy::PlayComboAnimation()
 
 void ATestDummy::SaveAttackCombo()
 {
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, "Save attack: " + FString(SaveAttack ? "true" : "false"));
 	//if we have an attack saved clear it and play our animation
 	if (SaveAttack) {
 		SaveAttack = false;
@@ -169,10 +173,13 @@ void ATestDummy::SaveAttackCombo()
 }
 
 void ATestDummy::ResetAttackCombo()
-{//reset our combo by seting the counter to 0 and clearing both ISAttaking and SaveAttack
+{//reset our combo by setting the counter to 0 and clearing both ISAttaking and SaveAttack
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, "Reseting: ");
 	AttackCount = 0;
 	IsAttacking = false;
 	SaveAttack = false;
+	//Call attack end to close colliders if the animation has been interrupted and reset manually
+	AttackEnd();
 }
 
 void ATestDummy::AttackStart()
@@ -251,13 +258,17 @@ bool ATestDummy::IsSteppingBack()
 void ATestDummy::RollStart()
 
 {
+	//Cannot roll in the air or if we are stepping backwards
 	if (!GetCharacterMovement()->IsFalling()) {
 		if (!GetMesh()->GetAnimInstance()->Montage_IsPlaying(StepBackMontage)) {
+			//if we have input roll
 			if (HasMovementInput()) {
 				bIsRolling = true;
+				//roll in direction
 				SetActorRotation(GetCharacterMovement()->GetLastInputVector().Rotation());
 				PlayHighPriorityMontage(RollMontage);
 			}
+			//else step back
 			else {
 				bIsSteppingBack = true;
 				TryPlayMontage(StepBackMontage, 2);
@@ -283,15 +294,23 @@ FRotator ATestDummy::GetDesiredRotation()
 
 void ATestDummy::PlayHighPriorityMontage(UAnimMontage* AnimMontage, int PlayRate)
 {
+	//only check if the animation we want to play is already playing
+	//we can interrupt everything ,but our selves
 	if (!GetMesh()->GetAnimInstance()->Montage_IsPlaying(AnimMontage)) {
+		StopAnimMontage();
 		HighPriorityMontage = AnimMontage;
 
 		PlayAnimMontage(HighPriorityMontage, PlayRate, NAME_None);
 	}
+	//Specifically for our attacks we need to reset the values associated with them if we intrupt them
+	//if we don't it breaks the system
+	//make some more "elegant"
+	TriggerAttackReset(HighPriorityMontage->SequenceLength * 0.8f);
 }
 
 void ATestDummy::TryPlayMontage(UAnimMontage* AnimMontage, int PlayRate /*= 1*/)
 {
+	//we can't intrupt anything so we check before playing
 	if (!GetMesh()->GetAnimInstance()->IsAnyMontagePlaying()) {
 		PlayAnimMontage(AnimMontage, PlayRate, NAME_None);
 	}
@@ -305,8 +324,6 @@ void ATestDummy::RollEnd()
 	else {
 		bIsSteppingBack = false;
 	}
-
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Magenta, TEXT("Roll END"));
 }
 
 void ATestDummy::CrouchStart()
@@ -321,6 +338,7 @@ void ATestDummy::CrouchEnd()
 
 void ATestDummy::ArmPlayer(bool Value)
 {
+	//set bIsArmed to update animations and reset the timer until we get back to idle
 	bIsArmed = Value;
 
 	if (!bIsArmed) {
@@ -354,11 +372,17 @@ void ATestDummy::SprintEnd()
 
 void ATestDummy::TriggerCountdownToIdle()
 {
+	//if the countdown has ended we need to reset it and bIsArmed
 	if (--CountDownToIdle <= 0) {
 		bIsArmed = false;
 		CountDownToIdle = MaxCountdownToIdle;
 		GetWorld()->GetTimerManager().ClearTimer(ArmedToIdleTimerHandle);
 	}
+}
+
+void ATestDummy::TriggerAttackReset(float delay)
+{//reset our attack combo when intrupted after a set delay
+	GetWorld()->GetTimerManager().SetTimer(ReTriggerableDelayHandle, this, &ATestDummy::ResetAttackCombo, 1.f, false, delay);
 }
 
 void ATestDummy::MoveForward(float AxisValue)

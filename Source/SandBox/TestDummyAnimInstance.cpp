@@ -43,7 +43,8 @@ void UTestDummyAnimInstance::NativeUpdateAnimation(float DeltaTimeX)
 		bIsArmed = PlayerCharacter->IsArmed();
 		bIsRolling = PlayerCharacter->IsRolling();
 		bIsMoving = Speed > 0 ? true : false;
-
+		//We need to rotate the character smoothly when we roll into a direction
+		//
 		if (PlayerCharacter)
 		{
 			if (ShouldRotate) {
@@ -55,12 +56,6 @@ void UTestDummyAnimInstance::NativeUpdateAnimation(float DeltaTimeX)
 			else {
 				StopRotating();
 			}
-
-			// again check pointers
-
-				//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, "IsInAir: " + FString(IsInAir ? "true" : "false"));
-				//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, "IsAnimationBlended: " + FString(IsAnimationBlended ? "true" : "false"));
-				//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, "Speed: " + FString::SanitizeFloat(Speed));
 		}
 	}
 }

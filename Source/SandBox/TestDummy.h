@@ -24,7 +24,7 @@ public:
 
 	// Sets default values for this character's properties
 	ATestDummy();
-	//Make the default animation montage editable in our blueprint class
+	//Make the default animation montages
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 		class UAnimMontage* AttackPrimaryAMontage;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
@@ -40,6 +40,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = Animation)
 		bool IsAnimationBlended();
 
+	//Getter for class bools
 	UFUNCTION(BlueprintCallable, Category = Animation)
 		bool IsArmed();
 
@@ -57,12 +58,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = Animation)
 		bool IsSteppingBack();
 
+	UFUNCTION(BlueprintCallable, Category = Animation)
+		bool HasMovementInput();
+
 	UFUNCTION()
 		void RollStart();
 
-	UFUNCTION()
-		bool HasMovementInput();
-
+	//Returns the direction of the last input vector
 	UFUNCTION()
 		FRotator GetDesiredRotation();
 
@@ -71,10 +73,10 @@ public:
 
 	UFUNCTION()
 		void CrouchStart();
-
+	//end crouching
 	UFUNCTION()
 		void CrouchEnd();
-
+	//"Arms" the player changing animations for idle and movement
 	UFUNCTION()
 		void ArmPlayer(bool Value);
 
@@ -86,10 +88,12 @@ public:
 
 	UFUNCTION()
 		void SprintEnd();
-
+	//Once the player is arm start a timer until the return to "normal"
 	UFUNCTION()
 		void TriggerCountdownToIdle();
-	//how long it take you to un arm
+	//Helper function that resets our attacks when interrupted
+	void TriggerAttackReset(float delay);
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Trace)
 		int MaxCountdownToIdle;
 
@@ -101,11 +105,14 @@ public:
 		float MaxSprintSpeed;
 	UPROPERTY(VisibleAnywhere)
 		float MaxArmedSpeed;
-	//Trigger attack animations based on user input
+
+	//Trigger attack
 	void AttackInput();
-	//Plays the next animation in out AttackCombo
+	//Helper function to play attack animation combos
 	void PlayComboAnimation();
+	//Helper function to play uninterpretable animations
 	void PlayHighPriorityMontage(UAnimMontage* AnimMontage, int PlayRate = 1);
+	////Helper function to play "low priority animations"
 	void TryPlayMontage(UAnimMontage* AnimMontage, int PlayRate = 1);
 
 	//Allows the current attack combo to continue
@@ -119,7 +126,8 @@ public:
 	void AttackEnd();
 	//Play Attack sound
 	void AttackSound();
-
+	//Timer handle for delayed actions
+	FTimerHandle ReTriggerableDelayHandle;
 protected:
 	// Called when the game starts or when spawned
 	virtual void
@@ -133,7 +141,6 @@ public:
 
 private:
 	//x and y movement
-
 	void MoveForward(float AxisValue);
 	void MoveRight(float AxisValue);
 	//x and y camera rotations for controller
@@ -151,6 +158,8 @@ private:
 	//A pointer to our actual weapon
 	UPROPERTY()
 		AMeleeWeapon* MeleeWeapon;
+
+	//class bools
 	UPROPERTY(VisibleAnywhere)
 		bool IsAttacking = false;
 	UPROPERTY(VisibleAnywhere)
