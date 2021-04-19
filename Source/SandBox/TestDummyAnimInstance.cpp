@@ -39,6 +39,7 @@ void UTestDummyAnimInstance::NativeUpdateAnimation(float DeltaTimeX)
 		bIsInAir = PlayerCharacter->GetMovementComponent()->IsFalling();
 		bIsAnimationBlended = PlayerCharacter->IsAnimationBlended();
 		Speed = PlayerCharacter->GetVelocity().Size();
+
 		bIsCrouching = PlayerCharacter->GetMovementComponent()->IsCrouching();
 		bIsArmed = PlayerCharacter->IsArmed();
 		bIsRolling = PlayerCharacter->IsRolling();

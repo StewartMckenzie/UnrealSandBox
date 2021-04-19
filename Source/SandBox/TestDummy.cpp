@@ -91,7 +91,6 @@ void ATestDummy::BeginPlay()
 	MaxCrouchSpeed = 175.f;
 	MaxWalkSpeed = 350.0f;
 	MaxSprintSpeed = 650.0f;
-	//MaxArmedSpeed = 200.f;
 	GetCharacterMovement()->MaxWalkSpeed = MaxWalkSpeed;
 	GetCharacterMovement()->MaxWalkSpeedCrouched = MaxCrouchSpeed;
 }
@@ -120,6 +119,7 @@ void ATestDummy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 	PlayerInputComponent->BindAction(TEXT("Sprint"), EInputEvent::IE_Pressed, this, &ATestDummy::SprintStart);
 	PlayerInputComponent->BindAction(TEXT("Sprint"), EInputEvent::IE_Released, this, &ATestDummy::SprintEnd);
 	PlayerInputComponent->BindAction(TEXT("Roll"), EInputEvent::IE_Pressed, this, &ATestDummy::RollStart);
+	PlayerInputComponent->BindAction(TEXT("LockOnTarget"), EInputEvent::IE_Pressed, this, &ATestDummy::LockTarget);
 }
 
 void ATestDummy::AttackInput()
@@ -228,6 +228,11 @@ bool ATestDummy::IsAnimationBlended()
 bool ATestDummy::IsArmed()
 {
 	return bIsArmed;
+}
+
+bool ATestDummy::IsTargetLocked()
+{
+	return bIsTargetLocked;
 }
 
 float ATestDummy::GetMoveRight()
@@ -347,6 +352,15 @@ void ATestDummy::ArmPlayer(bool Value)
 	}
 }
 
+void ATestDummy::LockTarget()
+{
+	//bIsTargetLocked = !Value;
+
+	if (!bIsTargetLocked) {
+		//targetLockign functionality
+	}
+}
+
 void ATestDummy::ArmPlayerImmediately()
 {
 	ArmPlayer(!bIsArmed);
@@ -387,29 +401,66 @@ void ATestDummy::TriggerAttackReset(float delay)
 
 void ATestDummy::MoveForward(float AxisValue)
 {
+	MoveForwardValue = AxisValue;
 	if ((Controller != NULL) && (AxisValue != 0.0f)) {
-		// find out which way is forward
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
+		if (bIsTargetLocked && !bIsCrouched) {
+			if (!GetCharacterMovement()->bUseControllerDesiredRotation) {
+				//point the character in in the direction of input
+				GetCharacterMovement()->bUseControllerDesiredRotation = true;
+				// do not rotate the character in the direction of movement
+				GetCharacterMovement()->bOrientRotationToMovement = false;
+			}
+			AddMovementInput(GetActorForwardVector(), MoveForwardValue);
+		}
+		else {
+			if (GetCharacterMovement()->bUseControllerDesiredRotation) {
+				//point the character in in the direction of input
+				GetCharacterMovement()->bUseControllerDesiredRotation = false;
+				// do not rotate the character in the direction of movement
+				GetCharacterMovement()->bOrientRotationToMovement = true;
+			}
+			// find out which way is forward
+			const FRotator Rotation = Controller->GetControlRotation();
+			const FRotator YawRotation(0, Rotation.Yaw, 0);
 
-		// get forward vector
-		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-		AddMovementInput(Direction, AxisValue);
+			// get forward vector
+			const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+			AddMovementInput(Direction, AxisValue);
+		}
 	}
 }
 
 void ATestDummy::MoveRight(float AxisValue)
 {
+	MoveRightValue = AxisValue;
 	if ((Controller != NULL) && (AxisValue != 0.0f))
 	{
-		// find out which way is right
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
+		if (bIsTargetLocked && !bIsCrouched) {
+			if (!GetCharacterMovement()->bUseControllerDesiredRotation) {
+				//point the character in in the direction of input
+				GetCharacterMovement()->bUseControllerDesiredRotation = true;
+				// do not rotate the character in the direction of movement
+				GetCharacterMovement()->bOrientRotationToMovement = false;
+			}
+			AddMovementInput(GetActorForwardVector(), MoveRightValue);
+		}
+		else {
+			if (GetCharacterMovement()->bUseControllerDesiredRotation) {
+				//point the character in in the direction of input
+				GetCharacterMovement()->bUseControllerDesiredRotation = false;
+				// do not rotate the character in the direction of movement
+				GetCharacterMovement()->bOrientRotationToMovement = true;
+			}
+			// find out which way is right
+			const FRotator Rotation = Controller->GetControlRotation();
+			const FRotator YawRotation(0, Rotation.Yaw, 0);
 
-		// get right vector
-		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-		// add movement in that direction
-		AddMovementInput(Direction, AxisValue);
+			// get right vector
+			const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, Direction.ToCompactString());
+			// add movement in that direction
+			AddMovementInput(Direction, AxisValue);
+		}
 	}
 }
 

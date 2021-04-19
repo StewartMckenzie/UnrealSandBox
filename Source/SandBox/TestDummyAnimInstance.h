@@ -46,6 +46,7 @@ public:
 	bool ShouldRotate = false;
 	float TimeElapsed = 0;
 	float RotateTime;
+
 	//maximum we can rotate in a second
 	float MaxDegreesPerSecond = 720;
 

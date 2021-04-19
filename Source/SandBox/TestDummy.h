@@ -45,6 +45,9 @@ public:
 		bool IsArmed();
 
 	UFUNCTION(BlueprintCallable, Category = Animation)
+		bool IsTargetLocked();
+
+	UFUNCTION(BlueprintCallable, Category = Animation)
 		float GetMoveRight();
 
 	UFUNCTION(BlueprintCallable, Category = Animation)
@@ -81,6 +84,10 @@ public:
 		void ArmPlayer(bool Value);
 
 	UFUNCTION()
+		void LockTarget();
+
+	//Arms player on a key press
+	UFUNCTION()
 		void ArmPlayerImmediately();
 
 	UFUNCTION()
@@ -96,15 +103,14 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Trace)
 		int MaxCountdownToIdle;
-
+	UPROPERTY(EditDefaultsOnly, Category = Trace)
+		float LockOnRadius;
 	UPROPERTY(VisibleAnywhere)
 		float MaxCrouchSpeed;
 	UPROPERTY(VisibleAnywhere)
 		float MaxWalkSpeed;
 	UPROPERTY(VisibleAnywhere)
 		float MaxSprintSpeed;
-	UPROPERTY(VisibleAnywhere)
-		float MaxArmedSpeed;
 
 	//Trigger attack
 	void AttackInput();
@@ -178,6 +184,7 @@ private:
 	bool bIsRolling;
 	bool bIsSteppingBack;
 	bool bIsArmed;
+	bool bIsTargetLocked = false;
 	FTimerHandle ArmedToIdleTimerHandle;
 	int CountDownToIdle;
 };
