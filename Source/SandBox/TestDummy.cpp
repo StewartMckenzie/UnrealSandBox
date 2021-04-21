@@ -134,7 +134,7 @@ float ATestDummy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent
 	float DamageToApply = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 	DamageToApply = FMath::Min(Health, DamageToApply);
 	Health -= DamageToApply;
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString(("Health is at %f"), Health));
+	UE_LOG(LogTemp, Warning, TEXT("Health left %f"), Health);
 	return DamageToApply;
 }
 
@@ -239,6 +239,11 @@ void ATestDummy::AttackSound()
 bool ATestDummy::IsAnimationBlended()
 {
 	return bIsAnimationBlended;
+}
+
+bool ATestDummy::IsDead() const
+{
+	return Health <= 0;
 }
 
 bool ATestDummy::IsArmed()

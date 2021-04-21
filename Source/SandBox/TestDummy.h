@@ -45,6 +45,10 @@ public:
 		bool IsAnimationBlended();
 
 	//Getter for class bools
+
+	UFUNCTION(BlueprintCallable)
+		bool IsDead() const;
+
 	UFUNCTION(BlueprintCallable, Category = Animation)
 		bool IsArmed();
 

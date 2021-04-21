@@ -34,6 +34,8 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 		bool bIsRolling;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+		bool bIsDead;
 
 public:
 	UTestDummyAnimInstance();

@@ -66,17 +66,13 @@ void AMeleeWeapon::Tick(float DeltaTime)
 void AMeleeWeapon::OnAttackHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Magenta, OtherActor->GetName());
-	FVector SlashDirection;
 	AController* OwnerController = GetOwnerController();
 	SwordHitAudioComponent->Play();
 	if (OwnerController != nullptr) {
 		SwordHitAudioComponent->Play();
+		FPointDamageEvent DamageEvent(Damage, SweepResult, SweepResult.ImpactNormal, nullptr);
 
-		/*	AActor* HitActor = SweepResult.GetActor();*/
-
-			//FPointDamageEvent DamageEvent(Damage, Hit, SlashDirection, nullptr);
-
-			//HitActor->TakeDamage(Damage, DamageEvent, OwnerController, this);
+		OtherActor->TakeDamage(Damage, DamageEvent, OwnerController, this);
 	}
 }
 
