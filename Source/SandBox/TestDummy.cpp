@@ -7,6 +7,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "SphereTrace.h"
 #include "Engine.h"
 
 // Sets default values
@@ -25,6 +26,9 @@ ATestDummy::ATestDummy()
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f); // ...at this rotation rate
 	GetCharacterMovement()->JumpZVelocity = JumpForceZ;
 	GetCharacterMovement()->AirControl = 0.2f;
+
+	SphereTrace = CreateDefaultSubobject<USphereTrace>(TEXT("SphereTrace"));
+	SphereTrace->SetupAttachment(RootComponent);
 
 	// Create a camera boom (pulls in towards the player if there is a collision)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
@@ -76,6 +80,7 @@ ATestDummy::ATestDummy()
 void ATestDummy::BeginPlay()
 {
 	Super::BeginPlay();
+	Health = MaxHealth;
 	//spawn the weapon in world
 	MeleeWeapon = GetWorld()->SpawnActor<AMeleeWeapon>(MeleeWeaponClass);
 
@@ -99,6 +104,8 @@ void ATestDummy::BeginPlay()
 void ATestDummy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	//if (bIsTargetLocked) {
+	//}
 }
 
 // Called to bind functionality to input
@@ -122,9 +129,18 @@ void ATestDummy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 	PlayerInputComponent->BindAction(TEXT("LockOnTarget"), EInputEvent::IE_Pressed, this, &ATestDummy::LockTarget);
 }
 
+float ATestDummy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	float DamageToApply = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	DamageToApply = FMath::Min(Health, DamageToApply);
+	Health -= DamageToApply;
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString(("Health is at %f"), Health));
+	return DamageToApply;
+}
+
 void ATestDummy::AttackInput()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, "IsAttacking: " + FString(IsAttacking ? "true" : "false"));
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, "IsAttacking: " + FString(IsAttacking ? "true" : "false"));
 	//is we are already attack save our attack
 	if (!bIsRolling) {
 		if (IsAttacking) {
@@ -164,7 +180,7 @@ void ATestDummy::PlayComboAnimation()
 
 void ATestDummy::SaveAttackCombo()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, "Save attack: " + FString(SaveAttack ? "true" : "false"));
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, "Save attack: " + FString(SaveAttack ? "true" : "false"));
 	//if we have an attack saved clear it and play our animation
 	if (SaveAttack) {
 		SaveAttack = false;
@@ -174,7 +190,7 @@ void ATestDummy::SaveAttackCombo()
 
 void ATestDummy::ResetAttackCombo()
 {//reset our combo by setting the counter to 0 and clearing both ISAttaking and SaveAttack
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, "Reseting: ");
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, "Reseting: ");
 	AttackCount = 0;
 	IsAttacking = false;
 	SaveAttack = false;
@@ -188,8 +204,8 @@ void ATestDummy::AttackStart()
 	//Need to refactor this, causes UE to crash when opening the anim montage
 	if (WeaponCollisionBox != nullptr) {
 		WeaponCollisionBox->SetCollisionProfileName("Weapon");
-		WeaponCollisionBox->SetNotifyRigidBodyCollision(true);
-		/*	WeaponCollisionBox->SetGenerateOverlapEvents(true);*/
+		/*	WeaponCollisionBox->SetNotifyRigidBodyCollision(true);*/
+		WeaponCollisionBox->SetGenerateOverlapEvents(true);
 	}
 }
 
@@ -198,8 +214,8 @@ void ATestDummy::AttackEnd()
 	//Deactivate collider
 	if (WeaponCollisionBox != nullptr) {
 		WeaponCollisionBox->SetCollisionProfileName("NoCollision");
-		WeaponCollisionBox->SetNotifyRigidBodyCollision(false);
-		/*	WeaponCollisionBox->SetGenerateOverlapEvents(false);*/
+		//WeaponCollisionBox->SetNotifyRigidBodyCollision(false);
+		WeaponCollisionBox->SetGenerateOverlapEvents(false);
 	}
 	//Check if our timer is still going
 	bool bIsCountdownActive = GetWorld()->GetTimerManager().IsTimerActive(ArmedToIdleTimerHandle);
@@ -354,10 +370,17 @@ void ATestDummy::ArmPlayer(bool Value)
 
 void ATestDummy::LockTarget()
 {
-	//bIsTargetLocked = !Value;
-
 	if (!bIsTargetLocked) {
-		//targetLockign functionality
+		AActor* HitActor = SphereTrace->BeginTrace();
+		if (HitActor) {
+			bIsTargetLocked = true;
+			//GEngine->AddOnScreenDebugMessage(-1, 60.0f, FColor::Orange, FString::Printf(TEXT("Hit: %s"), *HitActor->GetName()));
+
+			//targetLockign functionality
+		}
+	}
+	else {
+		bIsTargetLocked = false;
 	}
 }
 
@@ -403,30 +426,29 @@ void ATestDummy::MoveForward(float AxisValue)
 {
 	MoveForwardValue = AxisValue;
 	if ((Controller != NULL) && (AxisValue != 0.0f)) {
-		if (bIsTargetLocked && !bIsCrouched) {
-			if (!GetCharacterMovement()->bUseControllerDesiredRotation) {
-				//point the character in in the direction of input
-				GetCharacterMovement()->bUseControllerDesiredRotation = true;
-				// do not rotate the character in the direction of movement
-				GetCharacterMovement()->bOrientRotationToMovement = false;
-			}
-			AddMovementInput(GetActorForwardVector(), MoveForwardValue);
-		}
-		else {
-			if (GetCharacterMovement()->bUseControllerDesiredRotation) {
-				//point the character in in the direction of input
-				GetCharacterMovement()->bUseControllerDesiredRotation = false;
-				// do not rotate the character in the direction of movement
-				GetCharacterMovement()->bOrientRotationToMovement = true;
-			}
+		//if (bIsTargetLocked && !bIsCrouched) {
+		//	if (!GetCharacterMovement()->bUseControllerDesiredRotation) {
+		//		//point the character in in the direction of input
+		//		GetCharacterMovement()->bUseControllerDesiredRotation = true;
+		//		// do not rotate the character in the direction of movement
+		//		//GetCharacterMovement()->bOrientRotationToMovement = false;
+		//	}
+		//	AddMovementInput(GetActorForwardVector(), MoveForwardValue);
+		//}
+		//else {
+		//	if (GetCharacterMovement()->bUseControllerDesiredRotation) {
+		//		//point the character in in the direction of input
+		//		GetCharacterMovement()->bUseControllerDesiredRotation = false;
+		//		// do not rotate the character in the direction of movement
+		//		//GetCharacterMovement()->bOrientRotationToMovement = true;
+		//	}
 			// find out which way is forward
-			const FRotator Rotation = Controller->GetControlRotation();
-			const FRotator YawRotation(0, Rotation.Yaw, 0);
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
 
-			// get forward vector
-			const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-			AddMovementInput(Direction, AxisValue);
-		}
+		// get forward vector
+		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		AddMovementInput(Direction, AxisValue);
 	}
 }
 
@@ -435,32 +457,31 @@ void ATestDummy::MoveRight(float AxisValue)
 	MoveRightValue = AxisValue;
 	if ((Controller != NULL) && (AxisValue != 0.0f))
 	{
-		if (bIsTargetLocked && !bIsCrouched) {
-			if (!GetCharacterMovement()->bUseControllerDesiredRotation) {
-				//point the character in in the direction of input
-				GetCharacterMovement()->bUseControllerDesiredRotation = true;
-				// do not rotate the character in the direction of movement
-				GetCharacterMovement()->bOrientRotationToMovement = false;
-			}
-			AddMovementInput(GetActorForwardVector(), MoveRightValue);
-		}
-		else {
-			if (GetCharacterMovement()->bUseControllerDesiredRotation) {
-				//point the character in in the direction of input
-				GetCharacterMovement()->bUseControllerDesiredRotation = false;
-				// do not rotate the character in the direction of movement
-				GetCharacterMovement()->bOrientRotationToMovement = true;
-			}
-			// find out which way is right
-			const FRotator Rotation = Controller->GetControlRotation();
-			const FRotator YawRotation(0, Rotation.Yaw, 0);
+		//if (bIsTargetLocked && !bIsCrouched) {
+		//	if (!GetCharacterMovement()->bUseControllerDesiredRotation) {
+		//		//point the character in in the direction of input
+		//		GetCharacterMovement()->bUseControllerDesiredRotation = true;
+		//		// do not rotate the character in the direction of movement
+		//		//GetCharacterMovement()->bOrientRotationToMovement = false;
+		//	}
+		//	AddMovementInput(GetActorForwardVector(), MoveRightValue);
+		//}
+		//else {
+		//	if (GetCharacterMovement()->bUseControllerDesiredRotation) {
+		//		//point the character in in the direction of input
+		//		GetCharacterMovement()->bUseControllerDesiredRotation = false;
+		//		// do not rotate the character in the direction of movement
+		//		//GetCharacterMovement()->bOrientRotationToMovement = true;
+		//	}
+		//	// find out which way is right
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
 
-			// get right vector
-			const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, Direction.ToCompactString());
-			// add movement in that direction
-			AddMovementInput(Direction, AxisValue);
-		}
+		// get right vector
+		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+		// add movement in that direction
+		AddMovementInput(Direction, AxisValue);
 	}
 }
 

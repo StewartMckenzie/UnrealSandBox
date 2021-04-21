@@ -44,7 +44,7 @@ void AMeleeWeapon::BeginPlay()
 	//Attach box collider to our socket
 	BladeCollisionBox->AttachToComponent(Mesh, FAttachmentTransformRules::KeepWorldTransform, TEXT("BladeSocket"));
 	//When the weapon hits something call OnAttackHit on MeleeWeapon
-	BladeCollisionBox->OnComponentHit.AddDynamic(this, &AMeleeWeapon::OnAttackHit);
+	BladeCollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AMeleeWeapon::OnAttackHit);
 	//turn off auto play and set our cue as the sound for the component
 	//Done in begin play because there are issues with doing it in the constructor. Not to sure of the actual cause what they are gotta research
 	if (SwordSwingAudioComponent && !SwordSwingAudioComponent->IsPlaying()) {
@@ -55,9 +55,6 @@ void AMeleeWeapon::BeginPlay()
 		SwordHitAudioComponent->bAutoActivate = false;
 		SwordHitAudioComponent->SetSound(SwordHitSoundCue);
 	}
-
-	//BladeCollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AMeleeWeapon::OnAttackOverlapBegin);
-	//BladeCollisionBox->OnComponentEndOverlap.AddDynamic(this, &AMeleeWeapon::OnAttackOverlapEnd);
 }
 
 // Called every frame
@@ -66,18 +63,27 @@ void AMeleeWeapon::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void AMeleeWeapon::OnAttackHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+void AMeleeWeapon::OnAttackHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Magenta, Hit.GetActor()->GetName());
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Magenta, OtherActor->GetName());
+	FVector SlashDirection;
+	AController* OwnerController = GetOwnerController();
 	SwordHitAudioComponent->Play();
+	if (OwnerController != nullptr) {
+		SwordHitAudioComponent->Play();
+
+		/*	AActor* HitActor = SweepResult.GetActor();*/
+
+			//FPointDamageEvent DamageEvent(Damage, Hit, SlashDirection, nullptr);
+
+			//HitActor->TakeDamage(Damage, DamageEvent, OwnerController, this);
+	}
 }
 
-//void AMeleeWeapon::OnAttackOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-//{
-//	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Magenta, OtherActor->GetName());
-//}
-//
-//void AMeleeWeapon::OnAttackOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-//{
-//	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Magenta, OtherActor->GetName());
-//}
+AController* AMeleeWeapon::GetOwnerController() const
+{
+	APawn* OwnerPawn = Cast<APawn>(GetOwner());
+	if (OwnerPawn == nullptr)
+		return nullptr;
+	return OwnerPawn->GetController();
+}

@@ -23,7 +23,8 @@ public:
 
 	//Triggered when collision hit event fires between weapon and enemy Must be a UFUNCTION
 	UFUNCTION()
-		void OnAttackHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+		void OnAttackHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
 	//Sound cues for our sword swinging and hiting
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Audio, meta = (AllowPrivateAccess = "true"))
 		class USoundCue* SwordSwingSoundCue;
@@ -55,4 +56,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere)
 		USkeletalMeshComponent* Mesh;
+
+	UPROPERTY(EditAnywhere)
+		float Damage = 10;
+
+	AController* GetOwnerController() const;
 };

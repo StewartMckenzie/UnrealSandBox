@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/SceneComponent.h"
+#include "TestDummy.h"
 #include "SphereTrace.generated.h"
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
@@ -24,5 +25,10 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	UPROPERTY(EditAnywhere, Category = "Trace")
-		float TraceRadius = 500.0f;
+		float TraceRadius = 250.0f;
+
+	AActor* BeginTrace();
+	ATestDummy* Player;
+	//TArray<FHitResult> HitArray;
+	//TArray<FHitResult>
 };

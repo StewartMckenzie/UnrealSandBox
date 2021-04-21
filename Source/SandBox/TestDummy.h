@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "MeleeWeapon.h"
+
 #include "TestDummy.generated.h"
 
 UCLASS(config = Game)
@@ -21,6 +22,9 @@ public:
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		class UCameraComponent* FollowCamera;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+		class USphereTrace* SphereTrace;
 
 	// Sets default values for this character's properties
 	ATestDummy();
@@ -145,6 +149,8 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+
 private:
 	//x and y movement
 	void MoveForward(float AxisValue);
@@ -174,6 +180,10 @@ private:
 		int AttackCount = 0;
 	UPROPERTY(VisibleAnywhere)
 		int AttackSpeed = 1.7;
+	UPROPERTY(EditDefaultsOnly)
+		float MaxHealth = 100;
+	UPROPERTY(VisibleAnywhere)
+		float Health;
 	UAnimMontage* HighPriorityMontage;
 
 	bool bIsSprintning;

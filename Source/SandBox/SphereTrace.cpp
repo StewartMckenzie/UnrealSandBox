@@ -3,6 +3,10 @@
 #include "SphereTrace.h"
 #include "Kismet/KismetSystemLibrary.h"
 
+#include "Camera/CameraComponent.h"
+
+class UCameraComponent;
+
 // Sets default values for this component's properties
 USphereTrace::USphereTrace()
 {
@@ -17,23 +21,37 @@ USphereTrace::USphereTrace()
 void USphereTrace::BeginPlay()
 {
 	Super::BeginPlay();
+	Player = Cast<ATestDummy>(GetOwner());
 }
 
 // Called every frame
 void USphereTrace::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	const FVector	Start = GetOwner()->GetActorLocation();
-	const FVector	End = GetOwner()->GetActorLocation();
+}
 
-	TArray<AActor*> ActorsToIgnore;
-	ActorsToIgnore.Add(GetOwner());
-	TArray<FHitResult> HitArray;
-	const bool Hit = UKismetSystemLibrary::SphereTraceMulti(GetWorld(), Start, End, TraceRadius, UEngineTypes::ConvertToTraceType(ECC_Camera), false, ActorsToIgnore, EDrawDebugTrace::ForDuration, HitArray, true, FLinearColor::Gray, FLinearColor::Blue, 60.0f);
+AActor* USphereTrace::BeginTrace()
+{
+	if (Player) {
+		const FVector	Start = Player->GetActorLocation();
+		const FVector	End = Player->FollowCamera->GetForwardVector() * 1000.0f + Start;;
 
-	if (Hit) {
-		for (const FHitResult HitResult : HitArray) {
-			GEngine->AddOnScreenDebugMessage(-1, 60.0f, FColor::Orange, FString::Printf(TEXT("Hit: %s"), *HitResult.Actor->GetName()));
+		TArray<AActor*> ActorsToIgnore;
+		ActorsToIgnore.Add(GetOwner());
+		TArray<FHitResult> HitArray;
+		TArray<TEnumAsByte<enum EObjectTypeQuery>> objectTypes;
+
+		objectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_PhysicsBody));
+
+		//bool UKismetSystemLibrary::SphereTraceMultiForObjects(const UObject * WorldContextObject, const FVector Start, const FVector End, float Radius, const TArray<TEnumAsByte<EObjectTypeQuery> > &ObjectTypes, bool bTraceComplex, const TArray<AActor*>&ActorsToIgnore, EDrawDebugTrace::Type DrawDebugType, TArray<FHitResult>&OutHits, bool bIgnoreSelf, FLinearColor TraceColor, FLinearColor TraceHitColor, float DrawTime)
+
+		const bool Hit = UKismetSystemLibrary::SphereTraceMultiForObjects(GetWorld(), Start, End, TraceRadius, objectTypes, false, ActorsToIgnore, EDrawDebugTrace::ForDuration, HitArray, true, FLinearColor::Gray, FLinearColor::Blue, 60.0f);
+		if (Hit) {
+			//for (const FHitResult HitResult : HitArray) {
+			//	GEngine->AddOnScreenDebugMessage(-1, 60.0f, FColor::Orange, FString::Printf(TEXT("Hit: %s"), *HitResult.Actor->GetName()));
+			//}
+			return HitArray[0].GetActor();
 		}
 	}
+	return nullptr;
 }
